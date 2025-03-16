@@ -22,7 +22,7 @@ createWeb3Modal({
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "DocuVerify - Document Issuance and Verification Platform",
+  title: "CertifyChain - Document Issuance and Verification Platform",
   description:
     "Secure document issuance and verification platform for institutions",
   generator: "v0.dev",

@@ -39,7 +39,7 @@ export default function VerifyPage() {
       };
       issuedAt: bigint;
       status: boolean;
-      name: string
+      name: string;
     };
   }>({ status: "idle" });
 
@@ -83,12 +83,21 @@ export default function VerifyPage() {
 
       // Sign and send transaction
       const result: [
-        docHash: string,
+        valid: boolean,
         issuer: string,
         issuedAt: bigint,
         revoked: boolean,
         ipfsURI: string
       ] = await contract.verifyDocument(data.hash);
+
+      if (result[0] === false) {
+        setVerificationState({
+          status: "error",
+          message: "The document has either been revoked or does not exist in the system",
+        });
+
+        return;
+      }
 
       // const result: [
       //   docHash: string,
@@ -118,17 +127,19 @@ export default function VerifyPage() {
       console.log(result);
 
       const { data: docData } = await axios.get<{
-        recipient: {
-          fullName: string;
-          email: string;
-          id: string;
-          walletAddress: string;
-        };
-        document: {
-          type: string;
-          id: string;
-          hash: string;
-          description: string;
+        data: {
+          recipient: {
+            fullName: string;
+            email: string;
+            id: string;
+            walletAddress: string;
+          };
+          document: {
+            type: string;
+            id: string;
+            hash: string;
+            description: string;
+          };
         };
       }>("/api/register", {
         params: {
@@ -141,7 +152,7 @@ export default function VerifyPage() {
         setVerificationState({
           status: "success",
           data: {
-            ...docData,
+            ...docData["data"],
             issuedAt: result[2],
             status: result[3],
             name: metadataResponse.data["data"]["name"],
@@ -170,7 +181,7 @@ export default function VerifyPage() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">DocuVerify</span>
+            <span className="text-xl font-bold">CertifyChain</span>
           </Link>
           <nav className="flex items-center gap-6">
             <Link href="/" className="text-sm font-medium">
@@ -246,7 +257,9 @@ export default function VerifyPage() {
                       <Building2 className="h-6 w-6 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-bold">{verificationState.data?.name}</h3>
+                      <h3 className="font-bold">
+                        {verificationState.data?.name}
+                      </h3>
                       <p className="text-sm text-muted-foreground">
                         Issuing Institution
                       </p>
@@ -258,26 +271,35 @@ export default function VerifyPage() {
                       <span className="text-sm text-muted-foreground">
                         Document Type:
                       </span>
-                      <span className="font-medium">Degree Certificate</span>
+                      <span className="font-medium">
+                        {verificationState.data?.document.type}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">
                         Recipient:
                       </span>
-                      <span className="font-medium">{verificationState.data?.recipient.fullName}</span>
+                      <span className="font-medium">
+                        {verificationState.data?.recipient.fullName}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">
                         Issue Date:
                       </span>
-                      <span className="font-medium">June 15, 2023</span>
+                      <span className="font-medium">
+                        {" "}
+                        {new Date(
+                          Number(verificationState?.data?.issuedAt) * 1000
+                        ).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-sm text-muted-foreground">
-                        Verification Date:
+                        Status:
                       </span>
                       <span className="font-medium">
-                        {new Date().toLocaleDateString()}
+                        {verificationState.data?.status ? "Revoked" : "Issued"}
                       </span>
                     </div>
                   </div>
@@ -303,10 +325,10 @@ export default function VerifyPage() {
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="text-sm font-bold">DocuVerify</span>
+            <span className="text-sm font-bold">CertifyChain</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            © 2023 DocuVerify. All rights reserved.
+            © 2023 CertifyChain. All rights reserved.
           </div>
         </div>
       </footer>

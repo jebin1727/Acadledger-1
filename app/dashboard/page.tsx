@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -187,6 +187,72 @@ export default function Dashboard() {
 
   const [newDocumentOpened, setNewDocumentOpened] = useState(false);
 
+  const { data: walletClient } = useWalletClient();
+
+  const onRevoke = async (hash: string) => {
+    try {
+      if (!walletClient) {
+        return;
+      }
+
+      // console.log(data);
+      // setLoading(true);
+
+      // console.log(await connector?.getProvider())
+
+      // Convert to EIP-1193 provider
+      const provider = new ethers.BrowserProvider(walletClient.transport);
+      const signer = await provider.getSigner();
+      console.log(signer);
+      // const feeData = await provider.get();
+
+      // console.log(feeData)
+
+      // // Connect to contract
+      const contract = new ethers.Contract(
+        "0x9EBf5CA8b533E62d0cA2AFC75FF99f616238A4A5",
+        abi, // Your contract ABI
+        signer
+      );
+
+      // const estimatedGas = await contract.getAddress;
+
+      // console.log(await contract.issueDocument.staticCallResult("hash", "cid"))
+
+      // Sign and send transaction
+      const gas = await contract.revokeDocument.estimateGas(hash);
+      const tx = await contract.revokeDocument(hash, {
+        gasLimit: gas + gas/10n,
+      });
+      await tx.wait();
+
+      // // Handle successful transaction
+      console.log("Transaction successful:", tx.hash);
+
+      setInstitutionDetails((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          documents: prev.documents.map((doc) => {
+            if (doc.document.hash === hash) {
+              return {
+                ...doc,
+                status: true
+              };
+            }
+            return doc;
+          })
+        };
+      });
+
+      // setLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+
+    // Handle form submission
+  };
+
   if (!isConnected) {
     return <LoginForm />;
   }
@@ -197,7 +263,7 @@ export default function Dashboard() {
         <div className="flex h-14 items-center border-b px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Shield className="h-5 w-5 text-primary" />
-            <span>DocuVerify</span>
+            <span>CertifyChain</span>
           </Link>
         </div>
         <nav className="flex-1 overflow-auto py-4">
@@ -229,7 +295,7 @@ export default function Dashboard() {
           <div className="md:hidden">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Shield className="h-5 w-5 text-primary" />
-              <span>DocuVerify</span>
+              <span>CertifyChain</span>
             </Link>
           </div>
           <div className="w-full flex-1">
@@ -275,7 +341,34 @@ export default function Dashboard() {
                     document.
                   </DialogDescription>
                 </DialogHeader>
-                <NewDocumentForm onClose={() => setNewDocumentOpened(false)} />
+                <NewDocumentForm
+                  onNewDocumentAdd={(newData: {
+                    recipient: {
+                      fullName: string;
+                      email: string;
+                      id: string;
+                      walletAddress: string;
+                    };
+                    document: {
+                      type: string;
+                      id: string;
+                      hash: string;
+                      description: string;
+                    };
+                    issuedAt: bigint;
+                    status: boolean;
+                  }) =>
+                    setInstitutionDetails((prev) =>
+                      prev
+                        ? {
+                            name: prev.name,
+                            documents: prev.documents.concat(newData),
+                          }
+                        : null
+                    )
+                  }
+                  onClose={() => setNewDocumentOpened(false)}
+                />
               </DialogContent>
             </Dialog>
           </div>
@@ -325,7 +418,10 @@ export default function Dashboard() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="text-destructive">
+                              <DropdownMenuItem
+                                onClick={() => void onRevoke(doc.document.hash)}
+                                className="text-destructive"
+                              >
                                 Revoke
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -394,9 +490,31 @@ interface DocumentForm {
   documentType: string;
   documentFile: FileList;
   documentDescription: string;
+  documentId: string;
 }
 
-function NewDocumentForm({ onClose }: { onClose: () => void }) {
+function NewDocumentForm({
+  onClose,
+  onNewDocumentAdd,
+}: {
+  onClose: () => void;
+  onNewDocumentAdd: (newData: {
+    recipient: {
+      fullName: string;
+      email: string;
+      id: string;
+      walletAddress: string;
+    };
+    document: {
+      type: string;
+      id: string;
+      hash: string;
+      description: string;
+    };
+    issuedAt: bigint;
+    status: boolean;
+  }) => void;
+}) {
   const {
     register,
     handleSubmit,
@@ -404,77 +522,106 @@ function NewDocumentForm({ onClose }: { onClose: () => void }) {
   } = useForm<DocumentForm>();
   const { address, connector } = useAccount();
   const { data: walletClient } = useWalletClient();
+  const [loading, setLoading] = useState(false);
+  const newDocumentId = useMemo(() => crypto.randomUUID(),[])
 
   const onSubmit: SubmitHandler<DocumentForm> = async (data) => {
-    if (!walletClient) {
-      return;
-    }
-    // console.log(data);
-
-    const formData = new FormData();
-    formData.append("pdf", data.documentFile[0]);
-    formData.append("wallet_address", data.recipientWallet || "");
-
-    const {
-      data: { hash, embedding },
-    } = await axios.post<{ hash: string; embedding: number[] }>(
-      "http://localhost:5000/add_legit",
-      formData,
-      {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+    try {
+      if (!walletClient) {
+        return;
       }
-    );
 
-    const {
-      data: { cid },
-    } = await axios.post<{ cid: string }>("/api/register", {
-      recipientName: data.recipientName,
-      recipientEmail: data.recipientEmail,
-      recipientId: data.recipientId,
-      recipientWallet: data.recipientWallet,
-      documentType: data.documentType,
-      documentDescription: data.documentDescription,
-      documentHash: hash,
-      embedding: embedding,
-      documentId: crypto.randomUUID(),
-    });
+      // console.log(data);
+      setLoading(true);
 
-    // console.log(await connector?.getProvider())
+      const formData = new FormData();
+      formData.append("pdf", data.documentFile[0]);
+      formData.append("wallet_address", data.recipientWallet || "");
 
+      const {
+        data: { hash, embedding },
+      } = await axios.post<{ hash: string; embedding: number[] }>(
+        "http://localhost:5000/add_legit",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
-    // Convert to EIP-1193 provider
-    const provider = new ethers.BrowserProvider(walletClient.transport);
-    const signer = await provider.getSigner();
-    console.log(signer);
-    // const feeData = await provider.get();
+      const {
+        data: { cid },
+      } = await axios.post<{ cid: string }>("/api/register", {
+        recipientName: data.recipientName,
+        recipientEmail: data.recipientEmail,
+        recipientId: data.recipientId,
+        recipientWallet: data.recipientWallet,
+        documentType: data.documentType,
+        documentDescription: data.documentDescription,
+        documentHash: hash,
+        embedding: embedding,
+        documentId: newDocumentId,
+      });
 
-    // console.log(feeData)
+      // console.log(await connector?.getProvider())
 
-    // // Connect to contract
-    const contract = new ethers.Contract(
-      "0x9EBf5CA8b533E62d0cA2AFC75FF99f616238A4A5",
-      abi, // Your contract ABI
-      signer
-    );
+      // Convert to EIP-1193 provider
+      const provider = new ethers.BrowserProvider(walletClient.transport);
+      const signer = await provider.getSigner();
+      console.log(signer);
+      // const feeData = await provider.get();
 
-    // const estimatedGas = await contract.getAddress;
+      // console.log(feeData)
 
-    // console.log(await contract.issueDocument.staticCallResult("hash", "cid"))
+      // // Connect to contract
+      const contract = new ethers.Contract(
+        "0x9EBf5CA8b533E62d0cA2AFC75FF99f616238A4A5",
+        abi, // Your contract ABI
+        signer
+      );
 
-    // Sign and send transaction
-    const gas = await contract.issueDocument.estimateGas(hash, cid);
-    const tx = await contract.issueDocument(hash, cid, {
-      gasLimit: gas,
-    });
-    await tx.wait();
+      // const estimatedGas = await contract.getAddress;
 
-    // // Handle successful transaction
-    console.log("Transaction successful:", tx.hash);
+      // console.log(await contract.issueDocument.staticCallResult("hash", "cid"))
+
+      // Sign and send transaction
+      const gas = await contract.issueDocument.estimateGas(hash, cid);
+      const tx = await contract.issueDocument(hash, cid, {
+        gasLimit: gas + gas / 10n,
+      });
+      await tx.wait();
+
+      // // Handle successful transaction
+      console.log("Transaction successful:", tx.hash);
+
+      onNewDocumentAdd({
+        recipient: {
+          fullName: data.recipientName,
+          email: data.recipientEmail,
+          id: data.recipientId,
+          walletAddress: data.recipientWallet ?? "",
+        },
+        document: {
+          type: data.documentType,
+          id: newDocumentId,
+          hash: hash,
+          description: data.documentDescription,
+        },
+        issuedAt: BigInt(Math.floor(Date.now() / 1000)),
+        status: false,
+      });
+
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+
+    }
 
     // Handle form submission
   };
+
 
   return (
     <form
@@ -567,7 +714,12 @@ function NewDocumentForm({ onClose }: { onClose: () => void }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="document-id">Document ID</Label>
-            <Input id="document-id" defaultValue="CERT-2023-004" readOnly />
+            <Input
+              id="document-id"
+              defaultValue={newDocumentId}
+              value={newDocumentId}
+              readOnly
+            />
             <p className="text-xs text-muted-foreground">
               Auto-generated unique identifier
             </p>
@@ -614,7 +766,14 @@ function NewDocumentForm({ onClose }: { onClose: () => void }) {
           Cancel
         </Button>
         <Button type="submit" form="new-document-form">
-          Create Document
+          {loading ? (
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Creating...
+            </div>
+          ) : (
+            "Create Document"
+          )}
         </Button>
       </DialogFooter>
     </form>
