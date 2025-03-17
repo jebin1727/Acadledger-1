@@ -207,7 +207,7 @@ export const abi: ethers.Interface | ethers.InterfaceAbi = [
               "type": "string"
             }
           ],
-          "internalType": "struct CertifyChain.Institution",
+          "internalType": "struct AcadLedger.Institution",
           "name": "institution",
           "type": "tuple"
         },
@@ -239,7 +239,7 @@ export const abi: ethers.Interface | ethers.InterfaceAbi = [
               "type": "string"
             }
           ],
-          "internalType": "struct CertifyChain.Document[]",
+          "internalType": "struct AcadLedger.Document[]",
           "name": "issuedDocuments",
           "type": "tuple[]"
         }
@@ -321,7 +321,7 @@ export const abi: ethers.Interface | ethers.InterfaceAbi = [
               "type": "string"
             }
           ],
-          "internalType": "struct CertifyChain.Document[]",
+          "internalType": "struct AcadLedger.Document[]",
           "name": "",
           "type": "tuple[]"
         }
