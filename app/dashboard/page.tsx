@@ -82,7 +82,7 @@ type InstitutionData = [
 export default function Dashboard() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
 
   const { data: client } = useWalletClient();
 
@@ -110,7 +110,7 @@ export default function Dashboard() {
   useEffect(() => {
     const loadInstitution = async () => {
       try {
-        if (!client?.transport) return;
+        if (!client?.transport || !address) return;
 
         const provider = new ethers.BrowserProvider(client.transport);
         const signer = await provider.getSigner();
@@ -131,7 +131,7 @@ export default function Dashboard() {
             ipfsURI: string
           ][]
         ] = await contract.getInstitutionWithDocuments(
-          "0xB4DbaEAf41A339cefB524d959643A386284aF71a"
+            address
         );
 
         const metadataResponse = await axios.get("/api/register", {
