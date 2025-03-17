@@ -222,7 +222,7 @@ export default function Dashboard() {
       // Sign and send transaction
       const gas = await contract.revokeDocument.estimateGas(hash);
       const tx = await contract.revokeDocument(hash, {
-        gasLimit: gas + gas/10n,
+        gasLimit: gas + gas / 40n,
       });
       await tx.wait();
 
@@ -588,7 +588,7 @@ function NewDocumentForm({
       // Sign and send transaction
       const gas = await contract.issueDocument.estimateGas(hash, cid);
       const tx = await contract.issueDocument(hash, cid, {
-        gasLimit: gas + gas / 10n,
+        gasLimit: gas + gas / 40n,
       });
       await tx.wait();
 
