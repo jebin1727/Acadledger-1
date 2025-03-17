@@ -541,7 +541,7 @@ function NewDocumentForm({
       const {
         data: { hash, embedding },
       } = await axios.post<{ hash: string; embedding: number[] }>(
-        "http://localhost:5000/add_legit",
+        "https://ledger.palatepals.com/add_legit",
         formData,
         {
           headers: {

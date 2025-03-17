@@ -52,7 +52,7 @@ export default function VerifyPage() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/verify",
+        "https://ledger.palatepals.com/verify",
         formData,
         {
           headers: {
