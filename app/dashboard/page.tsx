@@ -116,7 +116,7 @@ export default function Dashboard() {
         const signer = await provider.getSigner();
 
         const contract = new ethers.Contract(
-          "0x9EBf5CA8b533E62d0cA2AFC75FF99f616238A4A5",
+          "0xA09916427843c35a233BF355bFAF1C735F9e75fa",
           abi,
           signer
         );
@@ -210,7 +210,7 @@ export default function Dashboard() {
 
       // // Connect to contract
       const contract = new ethers.Contract(
-        "0x9EBf5CA8b533E62d0cA2AFC75FF99f616238A4A5",
+        "0xA09916427843c35a233BF355bFAF1C735F9e75fa",
         abi, // Your contract ABI
         signer
       );
@@ -263,7 +263,7 @@ export default function Dashboard() {
         <div className="flex h-14 items-center border-b px-4">
           <Link href="/" className="flex items-center gap-2 font-semibold">
             <Shield className="h-5 w-5 text-primary" />
-            <span>CertifyChain</span>
+            <span>AcadLedger</span>
           </Link>
         </div>
         <nav className="flex-1 overflow-auto py-4">
@@ -295,7 +295,7 @@ export default function Dashboard() {
           <div className="md:hidden">
             <Link href="/" className="flex items-center gap-2 font-semibold">
               <Shield className="h-5 w-5 text-primary" />
-              <span>CertifyChain</span>
+              <span>AcadLedger</span>
             </Link>
           </div>
           <div className="w-full flex-1">
@@ -576,7 +576,7 @@ function NewDocumentForm({
 
       // // Connect to contract
       const contract = new ethers.Contract(
-        "0x9EBf5CA8b533E62d0cA2AFC75FF99f616238A4A5",
+        "0xA09916427843c35a233BF355bFAF1C735F9e75fa",
         abi, // Your contract ABI
         signer
       );

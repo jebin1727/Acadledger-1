@@ -72,7 +72,7 @@ export default function VerifyPage() {
       );
       // // Connect to contract
       const contract = new ethers.Contract(
-        "0x9EBf5CA8b533E62d0cA2AFC75FF99f616238A4A5",
+        "0xA09916427843c35a233BF355bFAF1C735F9e75fa",
         abi, // Your contract ABI
         provider
       );
@@ -181,7 +181,7 @@ export default function VerifyPage() {
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">CertifyChain</span>
+            <span className="text-xl font-bold">AcadLedger</span>
           </Link>
           <nav className="flex items-center gap-6">
             <Link href="/" className="text-sm font-medium">
@@ -325,10 +325,10 @@ export default function VerifyPage() {
         <div className="container flex justify-between items-center">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="text-sm font-bold">CertifyChain</span>
+            <span className="text-sm font-bold">AcadLedger</span>
           </div>
           <div className="text-sm text-muted-foreground">
-            © 2023 CertifyChain. All rights reserved.
+            © 2023 AcadLedger. All rights reserved.
           </div>
         </div>
       </footer>

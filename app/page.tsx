@@ -17,7 +17,7 @@ export default function Home() {
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold">CertifyChain</span>
+            <span className="text-xl font-bold">AcadLedger</span>
           </div>
 
           <div className="flex items-center gap-4">
@@ -222,10 +222,10 @@ export default function Home() {
         <div className="container flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <span className="text-lg font-bold">CertifyChain</span>
+            <span className="text-lg font-bold">AcadLedger</span>
           </div>
           <div className="text-center md:text-left text-sm text-muted-foreground">
-            © 2023 CertifyChain. All rights reserved.
+            © 2023 AcadLedger. All rights reserved.
           </div>
         </div>
       </footer>
