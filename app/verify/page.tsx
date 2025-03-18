@@ -93,7 +93,9 @@ export default function VerifyPage() {
       if (result[0] === false) {
         setVerificationState({
           status: "error",
-          message: "The document has either been revoked or does not exist in the system",
+          message: `Document verification failed. Generated hash: ${
+            data.hash
+          }, Similarity score: ${data.similarity ? data.similarity : "0%"}. This indicates potential document fraud.`,
         });
 
         return;
