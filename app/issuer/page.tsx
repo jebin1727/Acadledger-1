@@ -1,9 +1,14 @@
 "use client"
 import Link from "next/link";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Shield, PenTool, Download, History, PlusSquare } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Shield, PenTool, Download, History, PlusSquare, Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { useAccount } from 'wagmi'
+import { hashStudentData, PrivateStudentData } from "@/lib/privacy-utils";
+import { attestOnChain } from "@/lib/blockchain";
 
 export default function IssuerPage() {
     const { open } = useWeb3Modal();
@@ -83,24 +88,136 @@ export default function IssuerPage() {
                                 <Button onClick={() => open()}>Connect Wallet</Button>
                             </div>
                         ) : (
-                            <div className="border rounded-lg p-8 text-center space-y-6">
-                                <div className="mx-auto h-20 w-20 bg-green-50 rounded-full flex items-center justify-center">
-                                    <PenTool className="h-10 w-10 text-green-600" />
+                            <div className="border rounded-lg p-8 space-y-6">
+                                <div className="flex items-center gap-4 border-b pb-4">
+                                    <div className="h-12 w-12 bg-green-50 rounded-full flex items-center justify-center">
+                                        <PenTool className="h-6 w-6 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold">Issue New Credential</h3>
+                                        <p className="text-sm text-muted-foreground">Fill in the student details to generate a secure attestation.</p>
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-xl font-bold">Institution Dashboard Active</h3>
-                                    <p className="text-muted-foreground max-w-md mx-auto">
-                                        In a real production app, this is where you would fill out a form (Name, Degree, ID) to generate the PDF and mint the hash.
-                                    </p>
-                                </div>
-                                <div className="p-4 bg-yellow-50 text-yellow-800 rounded text-sm border border-yellow-200">
-                                    <strong>Demo Tip:</strong> Use the "Get Valid Sample" button on the left to download a test certificate, then switch to the Verifier page to test it.
-                                </div>
+
+                                <IssuerForm />
                             </div>
                         )}
                     </div>
                 </div>
             </main>
+        </div>
+    );
+}
+
+function IssuerForm() {
+    const [isLoading, setIsLoading] = useState(false);
+    const [txHash, setTxHash] = useState<string | null>(null);
+    const [error, setError] = useState<string | null>(null);
+
+    const [formData, setFormData] = useState({
+        recipientName: "Alice Student",
+        recipientId: "STU-2024-001",
+        recipientEmail: "alice@example.com",
+        documentType: "Bachelor of Computer Science",
+        documentDescription: "Awarded for completing all requirements.",
+    });
+
+    const handleIssue = async () => {
+        setIsLoading(true);
+        setError(null);
+        setTxHash(null);
+
+        try {
+            // 1. Prepare Data
+            const studentData: PrivateStudentData = {
+                ...formData,
+                issuedAt: Date.now(),
+            };
+
+            // 2. Hash Data (Privacy Layer)
+            const hash = hashStudentData(studentData);
+            console.log("Generated Hash:", hash);
+
+            // 3. Attest on Blockchain (Truth Layer)
+            const result = await attestOnChain(hash);
+
+            if (result.success && result.txHash) {
+                setTxHash(result.txHash);
+            } else {
+                setError(result.error || "Unknown error during attestation");
+            }
+
+        } catch (err: any) {
+            setError(err.message || "Failed to process");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-4 text-left">
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label>Student Name</Label>
+                    <Input
+                        value={formData.recipientName}
+                        onChange={(e) => setFormData({ ...formData, recipientName: e.target.value })}
+                    />
+                </div>
+                <div className="space-y-2">
+                    <Label>Student ID</Label>
+                    <Input
+                        value={formData.recipientId}
+                        onChange={(e) => setFormData({ ...formData, recipientId: e.target.value })}
+                    />
+                </div>
+            </div>
+
+            <div className="space-y-2">
+                <Label>Document Type / Degree</Label>
+                <Input
+                    value={formData.documentType}
+                    onChange={(e) => setFormData({ ...formData, documentType: e.target.value })}
+                />
+            </div>
+
+            <div className="space-y-2">
+                <Label>Description / Major</Label>
+                <Input
+                    value={formData.documentDescription}
+                    onChange={(e) => setFormData({ ...formData, documentDescription: e.target.value })}
+                />
+            </div>
+
+            {error && (
+                <div className="p-3 bg-red-50 text-red-700 text-sm rounded flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" /> {error}
+                </div>
+            )}
+
+            {txHash && (
+                <div className="p-3 bg-green-50 text-green-700 text-sm rounded border border-green-200">
+                    <div className="flex items-center gap-2 font-semibold mb-1">
+                        <CheckCircle className="h-4 w-4" /> Success! Attestation Minted.
+                    </div>
+                    <p className="font-mono text-xs break-all text-green-800 opacity-80">TX: {txHash}</p>
+                    <p className="mt-2 text-xs text-black">
+                        In a real app, we would now generate the PDF containing these details hidden in metadata.
+                    </p>
+                </div>
+            )}
+
+            <Button onClick={handleIssue} disabled={isLoading} className="w-full bg-green-600 hover:bg-green-700">
+                {isLoading ? (
+                    <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Issuing & Attesting...
+                    </>
+                ) : (
+                    <>
+                        <PenTool className="mr-2 h-4 w-4" /> Issue Certificate (On-Chain)
+                    </>
+                )}
+            </Button>
         </div>
     );
 }
