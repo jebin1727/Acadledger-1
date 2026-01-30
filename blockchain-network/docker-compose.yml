@@ -1,0 +1,53 @@
+services:
+  node1:
+    image: ethereum/client-go:v1.10.26
+    container_name: eth-node1
+    volumes:
+      - ./node1:/data
+      - ./genesis.json:/genesis.json
+      - ./pass.txt:/pass.txt
+    ports:
+      - "8549:8549" # HTTP RPC
+      - "30303:30303" # P2P
+    command:
+      - --datadir=/data
+      - --networkid=211343
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8549
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.api=admin,eth,net,web3,miner,personal,txpool
+      - --mine
+      - --miner.etherbase=0xA45aA8befd87BfC362A1dC922634292017754C7A
+      - --allow-insecure-unlock
+      - --unlock=0xA45aA8befd87BfC362A1dC922634292017754C7A
+      - --password=/pass.txt
+      - --nodiscover
+
+  node2:
+    image: ethereum/client-go:v1.10.26
+    container_name: eth-node2
+    volumes:
+      - ./node2:/data
+      - ./genesis.json:/genesis.json
+      - ./pass.txt:/pass.txt
+    ports:
+      - "8559:8559" # HTTP RPC
+      - "30304:30304" # P2P
+    command:
+      - --datadir=/data
+      - --networkid=211343
+      - --http
+      - --http.addr=0.0.0.0
+      - --http.port=8559
+      - --http.corsdomain=*
+      - --http.vhosts=*
+      - --http.api=admin,eth,net,web3,miner,personal,txpool
+      - --mine
+      - --miner.etherbase=0xdBE823aa299B233eB1Fc41C865C1670BF92ff255
+      - --allow-insecure-unlock
+      - --unlock=0xdBE823aa299B233eB1Fc41C865C1670BF92ff255
+      - --password=/pass.txt
+      - --port=30304
+      - --nodiscover
