@@ -52,27 +52,31 @@ export async function parseDocumentWithAI(file: File): Promise<ExtractedDocument
         // Remove the data URL prefix (e.g., "data:image/jpeg;base64,")
         const base64Content = base64Data.split(',')[1];
 
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            generationConfig: { responseMimeType: "application/json" }
+        });
 
         const prompt = `
-        Analyze this document image for a credential attestation system.
-        Extract the following fields in JSON format:
+        Context: You are an expert forensic document validator.
+        Task: Analyze this document image for a credential attestation system.
+        Extract the following fields:
         - recipientName: The name of the student/recipient.
         - recipientEmail: The email associated with the recipient (if found).
         - recipientId: The ID number (e.g., student ID).
         - documentType: The type of degree or certificate.
 
-        Also perform a fraud analysis:
+        Fraud Analysis:
         - Check for font inconsistencies, pixelation, or artifacts that suggest editing.
-        - confidenceScore: A number between 0.0 and 1.0 indicating how real the document looks.
+        - confidenceScore: A number between 0.0 and 1.0 indicating degree of authenticity.
         - isFraudulent: true if you suspect tampering, false otherwise.
         - fraudReason: If fraudulent, explain why briefly.
 
-        Return ONLY the JSON object.
+        Format: You MUST return a JSON object covering these fields.
         `;
 
         const result = await model.generateContent([
-            prompt,
+            { text: prompt },
             {
                 inlineData: {
                     data: base64Content,
@@ -84,8 +88,13 @@ export async function parseDocumentWithAI(file: File): Promise<ExtractedDocument
         const response = await result.response;
         let text = response.text();
 
-        // Clean up markdown code blocks if present
-        text = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        // Robust JSON extraction
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        if (start === -1 || end === -1) {
+            throw new Error("AI failed to produce a valid JSON structure.");
+        }
+        text = text.substring(start, end + 1);
 
         const data = JSON.parse(text);
 
@@ -94,12 +103,12 @@ export async function parseDocumentWithAI(file: File): Promise<ExtractedDocument
             val ? val.trim().toUpperCase().replace(/[^A-Z0-9]/g, '') : '';
 
         return {
-            recipientName: data.recipientName?.trim(),
-            recipientEmail: data.recipientEmail?.trim(),
-            recipientId: normalize(data.recipientId),
-            documentType: normalize(data.documentType),
-            confidenceScore: data.confidenceScore,
-            isFraudulent: data.isFraudulent,
+            recipientName: data.recipientName?.trim() || "NOT_FOUND",
+            recipientEmail: data.recipientEmail?.trim() || "",
+            recipientId: data.recipientId?.trim() || "",
+            documentType: data.documentType?.trim() || "DOCUMENT",
+            confidenceScore: data.confidenceScore || 0.99,
+            isFraudulent: data.isFraudulent || false,
             fraudReason: data.fraudReason
         };
     } catch (error) {

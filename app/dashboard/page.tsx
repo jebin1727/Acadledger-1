@@ -267,13 +267,14 @@ export default function Dashboard() {
         <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-cyan-600/5 blur-[120px] rounded-full" />
       </div>
 
-      <aside className="hidden md:flex w-72 flex-col glassmorphism border-r border-white/5 relative z-20">
+      <aside className="hidden md:flex w-72 flex-col bg-black/10 backdrop-blur-3xl relative z-20">
+        <div className="absolute right-0 inset-y-0 w-[1px] bg-gradient-to-b from-transparent via-white/5 to-transparent" />
         <div className="flex h-20 items-center justify-center border-b border-white/5 px-6">
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="h-10 w-10 p-1.5 rounded-xl bg-white flex items-center justify-center overflow-hidden border border-white/10 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-white/5">
-              <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
+            <div className="h-10 w-10 p-1 rounded-full bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 group-hover:scale-110 transition-all duration-300 shadow-lg shadow-cyan-500/10">
+              <img src="/New Project 100 [31F474F].png" alt="AcadLedger Logo" className="w-full h-full object-cover" />
             </div>
-            <span className="text-xl font-black tracking-tighter uppercase">AcadLedger</span>
+            <span className="text-xl font-bold tracking-tight">AcadLedger</span>
           </Link>
         </div>
         <nav className="flex-1 overflow-auto py-8">
@@ -306,9 +307,10 @@ export default function Dashboard() {
       </aside>
 
       <div className="flex flex-col flex-1 relative z-10">
-        <header className="flex h-20 items-center gap-6 glassmorphism border-b border-white/5 px-8">
-          <div className="md:hidden h-8 w-8 bg-white rounded-lg flex items-center justify-center p-1">
-            <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
+        <header className="flex h-20 items-center gap-6 bg-black/10 backdrop-blur-2xl px-8 relative">
+          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
+          <div className="md:hidden h-10 w-10 bg-white/5 rounded-full flex items-center justify-center p-1 border border-white/10">
+            <img src="/New Project 100 [31F474F].png" alt="AcadLedger Logo" className="w-full h-full object-cover rounded-full" />
           </div>
           <div className="w-full flex-1">
             <div className="relative max-w-md">
@@ -333,10 +335,10 @@ export default function Dashboard() {
         <main className="flex flex-1 flex-col gap-8 p-8 max-w-7xl mx-auto w-full">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
-              <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">
-                Vault_Records
+              <h1 className="text-3xl font-bold tracking-tight text-white uppercase font-sans">
+                Vault Records
               </h1>
-              <p className="text-slate-400 text-sm font-light">Managing immutable proofs of academic achievement.</p>
+              <p className="text-slate-400 text-sm font-normal">Managing immutable proofs of academic achievement.</p>
             </div>
 
             <Dialog open={newDocumentOpened}>

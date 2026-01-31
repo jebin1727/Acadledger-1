@@ -1,13 +1,12 @@
 import type React from "react";
 import "./globals.css";
 import type { Metadata } from "next";
-import { Outfit, Fraunces } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 import { cookieToInitialState } from "wagmi";
 import { config, projectId, metadata as WMetadata } from "@/lib/config";
 import { headers } from "next/headers";
 import WagmiProviderComp from "@/lib/wagmi-provider";
 import { createWeb3Modal } from "@web3modal/wagmi/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 if (!projectId) throw new Error("Project ID is not defined");
 
@@ -16,10 +15,10 @@ createWeb3Modal({
   metadata: WMetadata,
   wagmiConfig: config,
   projectId,
-  enableAnalytics: true, // Optional - defaults to your Cloud configuration
+  enableAnalytics: true,
 });
 
-const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const inter = Inter({ subsets: ["latin"], weight: ["300", "400", "500", "600", "700"], variable: "--font-inter" });
 const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces" });
 
 export const metadata: Metadata = {
@@ -37,10 +36,9 @@ export default async function RootLayout({
   const headersList = await headers();
   const initialState = cookieToInitialState(config, headersList.get("cookie"));
 
-
   return (
     <html lang="en" className="dark">
-      <body className={`${outfit.variable} ${fraunces.variable} font-sans`}>
+      <body className={`${inter.variable} ${fraunces.variable} font-sans`}>
         {" "}
         <WagmiProviderComp initialState={initialState}>
           {children}

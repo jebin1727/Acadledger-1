@@ -24,20 +24,28 @@ export default function IssuerPage() {
                 <div className="absolute bottom-[20%] left-[10%] w-[30%] h-[30%] bg-blue-600/5 blur-[100px] rounded-full" />
             </div>
 
-            <header className="sticky top-0 z-50 border-b border-white/5 bg-black/40 backdrop-blur-2xl transition-all duration-300">
+            <header className="sticky top-0 z-50 bg-black/20 backdrop-blur-2xl transition-all duration-300">
+                <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                 <div className="container flex h-16 items-center justify-between">
                     <Link href="/" className="flex items-center gap-3 group">
-                        <div className="relative overflow-hidden h-10 w-10 p-1.5 rounded-xl bg-white flex items-center justify-center border border-white/10 group-hover:scale-110 transition-all duration-500 shadow-2xl group-hover:shadow-white/20">
-                            <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
-                            <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <div className="relative overflow-hidden h-10 w-10 p-1 rounded-full bg-white/5 flex items-center justify-center border border-white/10 group-hover:scale-110 transition-all duration-500 shadow-2xl group-hover:shadow-cyan-500/10">
+                            <img src="/New Project 100 [31F474F].png" alt="AcadLedger Logo" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40 group-hover:to-white transition-all duration-500">
+                            <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-white/40 group-hover:to-white transition-all duration-500">
                                 AcadLedger
                             </span>
-                            <span className="text-[8px] font-mono text-cyan-400 leading-none tracking-[0.2em] font-black uppercase opacity-60">SIT_Protocol</span>
+                            <span className="text-[8px] font-sans text-cyan-400 leading-none tracking-[0.2em] font-medium uppercase opacity-60">Global Protocol</span>
                         </div>
                     </Link>
+
+                    <nav className="hidden md:flex items-center gap-8">
+                        <Link href="/explorer" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-cyan-400 transition-colors">Explorer</Link>
+                        <Link href="/verifier" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-cyan-400 transition-colors">Verify</Link>
+                        <Link href="/dashboard" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-cyan-400 transition-colors">Dashboard</Link>
+                    </nav>
+
                     <div className="flex items-center gap-6">
                         <Button
                             onClick={() => open()}
@@ -48,7 +56,7 @@ export default function IssuerPage() {
                             {address ? (
                                 <div className="flex items-center gap-3 relative z-10">
                                     <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_12px_rgba(34,197,94,0.8)] animate-pulse" />
-                                    <span className="font-mono text-xs font-bold tracking-wider">{address.slice(0, 6)}...{address.slice(-4)}</span>
+                                    <span className="font-sans text-xs font-bold tracking-wider">{address.slice(0, 6)}...{address.slice(-4)}</span>
                                 </div>
                             ) : (
                                 <span className="relative z-10 font-bold tracking-wide">Connect Authority</span>
@@ -97,6 +105,8 @@ function DemoWorkflow({ address }: { address: string }) {
     const [txHash, setTxHash] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [fileName, setFileName] = useState<string | null>(null);
+    const [showJson, setShowJson] = useState(false);
+    const [jsonContent, setJsonContent] = useState<string | null>(null);
 
     const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -121,33 +131,57 @@ function DemoWorkflow({ address }: { address: string }) {
             const localData = await parseDocumentWithAI(file);
 
             // Step 2: Attempt to get canonical hash from external backend
-            let finalHash = "";
+            // NEW: Always generate a Content-Fingerprint from Metadata for cross-format consistency
+            const canonical = createCanonicalData(
+                localData.recipientName || "UNKNOWN",
+                localData.recipientId || "SIT-PENDING",
+                localData.documentType || "CERTIFICATE"
+            );
+            const metadataHash = hashStudentData(canonical);
+
+            // We use the metadata-derived hash as the primary 'finalHash' to ensure 
+            // the same document in different formats (PDF/JPG) yields the same ID.
+            let finalHash = metadataHash;
+
             try {
                 const formData = new FormData();
                 formData.append("pdf", file);
-
                 const response = await axios.post("https://ledger.palatepals.com/add_legit", formData, {
                     headers: { "Content-Type": "multipart/form-data" },
-                    timeout: 8000 // 8 second timeout
+                    timeout: 4000
                 });
-
-                finalHash = response.data.hash;
-            } catch (backendError) {
-                console.warn("External hash service unreachable. Generating local deterministic hash.", backendError);
-                // Fallback: Generate hash locally from extracted metadata (Approach B)
-                const canonical = createCanonicalData(
-                    localData.recipientName || "UNKNOWN",
-                    localData.recipientId || "AUTO-" + Date.now().toString().slice(-4),
-                    localData.documentType || "CERTIFICATE"
-                );
-                finalHash = hashStudentData(canonical);
+                // Optional: Store the file-level hash as a secondary proof if needed
+                console.log("Backend file-hash captured:", response.data.hash);
+            } catch (err) {
+                console.warn("Backend sync bypassed; relying on high-integrity local fingerprint.");
             }
 
             setDocumentHash(finalHash);
-            setExtractedData({
+            const enrichedData = {
                 ...localData,
                 recipientId: localData.recipientId || "SIT-" + finalHash.slice(2, 8).toUpperCase()
-            });
+            };
+            setExtractedData(enrichedData);
+
+            // Generate JSON content for display and session
+            const exportData = {
+                protocol: "AcadLedger_V2",
+                institution: "Verified Institution",
+                documentInfo: {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    hash: finalHash
+                },
+                extractedMetadata: enrichedData,
+                attestation: {
+                    status: "PENDING_ANCHOR",
+                    timestamp: new Date().toISOString()
+                }
+            };
+            const jsonStr = JSON.stringify(exportData, null, 2);
+            setJsonContent(jsonStr);
+            sessionStorage.setItem('acadledger_verify_data', jsonStr);
 
             setStep('extracted');
         } catch (err: any) {
@@ -204,6 +238,8 @@ function DemoWorkflow({ address }: { address: string }) {
         setDocumentHash(null);
         setTxHash(null);
         setError(null);
+        setJsonContent(null);
+        setShowJson(false);
     };
 
     return (
@@ -219,9 +255,9 @@ function DemoWorkflow({ address }: { address: string }) {
                 ].map((s, idx) => (
                     <div key={idx} className="flex flex-col items-center gap-3">
                         <div className={`h-12 w-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 ${s.active ? 'bg-cyber-gradient border-white/20 shadow-[0_0_20px_rgba(168,85,247,0.4)] scale-110' : 'bg-[#020617] border-white/5 text-slate-600'}`}>
-                            <span className="font-black text-xs font-mono">{s.id}</span>
+                            <span className="font-bold text-xs font-sans">{s.id}</span>
                         </div>
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${s.active ? 'text-white' : 'text-slate-600'}`}>{s.label}</span>
+                        <span className={`text-[10px] font-bold uppercase tracking-widest ${s.active ? 'text-white' : 'text-slate-600 font-medium'}`}>{s.label}</span>
                     </div>
                 ))}
             </div>
@@ -232,12 +268,12 @@ function DemoWorkflow({ address }: { address: string }) {
                     <div className={`p-8 rounded-[2.5rem] border transition-all duration-500 overflow-hidden relative ${step === 'idle' ? 'bg-purple-500/5 border-purple-500/20 ring-1 ring-purple-500/10' : 'glassmorphism border-white/10'}`}>
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
-                                <div className="h-10 w-10 glassmorphism rounded-xl flex items-center justify-center text-xs font-mono font-bold text-purple-400 border-purple-500/30">
+                                <div className="h-10 w-10 glassmorphism rounded-xl flex items-center justify-center text-xs font-sans font-bold text-purple-400 border-purple-500/30">
                                     S1
                                 </div>
-                                <h3 className="text-xl font-black uppercase tracking-widest text-white/90">Visual_Capture</h3>
+                                <h3 className="text-xl font-bold uppercase tracking-widest text-white/90">Visual_Capture</h3>
                             </div>
-                            {uploadedPreview && <div className="text-[10px] font-mono text-purple-400/60 animate-pulse">STREAM_ACTIVE</div>}
+                            {uploadedPreview && <div className="text-[10px] font-sans font-bold text-purple-400/60 animate-pulse uppercase tracking-[0.2em]">Stream_Active</div>}
                         </div>
 
                         <label className="block cursor-pointer group">
@@ -257,7 +293,7 @@ function DemoWorkflow({ address }: { address: string }) {
                                         ) : (
                                             <div className="aspect-[3/4] flex flex-col items-center justify-center bg-white/5 relative">
                                                 <Upload className="h-16 w-16 text-purple-400 mb-4 animate-bounce" />
-                                                <span className="text-white font-mono text-[10px] tracking-[0.3em] uppercase">PDF_DOCUMENT_SYNCED</span>
+                                                <span className="text-white font-sans font-bold text-[10px] tracking-[0.3em] uppercase">pdf_document_synced</span>
                                                 {step === 'extracting' && (
                                                     <div className="absolute inset-0 z-40 bg-cyan-500/5">
                                                         <div className="absolute top-0 left-0 w-full h-1 bg-cyan-400 shadow-[0_5px_30px_#22d3ee] animate-scan-slow" />
@@ -288,11 +324,11 @@ function DemoWorkflow({ address }: { address: string }) {
                             <div className={`h-10 w-10 glassmorphism rounded-xl flex items-center justify-center text-xs font-mono font-bold border transition-all duration-500 group-hover/parser:scale-110 group-hover/parser:border-cyan-500/50 ${extractedData ? 'text-cyan-400 border-cyan-500/30 shadow-[0_0_15px_rgba(34,211,238,0.2)]' : 'text-slate-600 border-white/5'}`}>
                                 S2
                             </div>
-                            <h3 className="text-xl font-black uppercase tracking-widest text-white/90 group-hover/parser:text-white transition-colors">Neural_Parser</h3>
+                            <h3 className="text-xl font-bold uppercase tracking-widest text-white/90 group-hover/parser:text-white transition-colors">Neural_Parser</h3>
                             <div className="ml-auto flex items-center gap-3">
                                 {fileName && <span className="text-[10px] font-mono text-cyan-400/60 bg-cyan-500/5 px-3 py-1 rounded-full border border-cyan-500/10 max-w-[120px] truncate group-hover/parser:border-cyan-500/30 transition-all">{fileName}</span>}
-                                <div className="h-10 w-10 p-1.5 rounded-xl bg-white flex items-center justify-center overflow-hidden border border-white/10 group-hover/parser:scale-110 group-hover/parser:rotate-3 transition-transform duration-500 shadow-xl shadow-white/5">
-                                    <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
+                                <div className="h-10 w-10 p-1 rounded-xl bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 group-hover/parser:scale-110 group-hover/parser:rotate-3 transition-transform duration-500 shadow-xl shadow-cyan-500/5">
+                                    <img src="/New Project 100 [31F474F].png" alt="AcadLedger Logo" className="w-full h-full object-cover" />
                                 </div>
                             </div>
                         </div>
@@ -302,40 +338,90 @@ function DemoWorkflow({ address }: { address: string }) {
                                 <div className="flex gap-1">
                                     {[1, 2, 3].map(i => <div key={i} className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />)}
                                 </div>
-                                <span className="text-xs font-mono text-cyan-400 tracking-widest uppercase animate-pulse">Analyzing_Document_Fabric...</span>
+                                <span className="text-xs font-sans font-bold text-cyan-400 tracking-widest uppercase animate-pulse">Analyzing_Document_Fabric...</span>
                             </div>
                         )}
 
                         {extractedData && (
                             <div className="space-y-6 animate-in fade-in duration-1000">
                                 <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-                                    <DataField label="Recipient_Identity" value={extractedData.recipientName} />
-                                    <DataField label="Credential_UID" value={extractedData.recipientId} isMono />
-                                    <DataField label="Schema_Type" value={extractedData.documentType} className="col-span-2" />
+                                    <DataField label="Recipient_Identity" value={extractedData.recipientName} className="animate-in fade-in slide-in-from-bottom-4 duration-500" />
+                                    <DataField label="Credential_UID" value={extractedData.recipientId} isMono className="animate-in fade-in slide-in-from-bottom-4 duration-700" />
+                                    <DataField
+                                        label="Schema_Type"
+                                        value={extractedData.documentType}
+                                        className="col-span-2 animate-in fade-in slide-in-from-bottom-4 duration-1000"
+                                        isSpecial
+                                    />
                                 </div>
 
-                                <div className="pt-6 border-t border-white/5 flex items-center justify-between relative z-10">
-                                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-black tracking-[0.2em] uppercase shadow-sm transition-all duration-500 hover:scale-105 ${extractedData.isFraudulent ? 'bg-red-500/10 border-red-500/20 text-red-500 hover:border-red-500/50' : 'bg-green-500/10 border-green-500/20 text-green-500 hover:border-green-500/50'}`}>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <div className={`flex items-center gap-2 px-4 py-2 rounded-full border text-[10px] font-bold tracking-[0.2em] uppercase shadow-sm transition-all duration-500 hover:scale-105 ${extractedData.isFraudulent ? 'bg-red-500/10 border-red-500/20 text-red-500 hover:border-red-500/50' : 'bg-green-500/10 border-green-500/20 text-green-500 hover:border-green-500/50'}`}>
                                         {extractedData.isFraudulent ? <AlertCircle className="h-3.5 w-3.5" /> : <CheckCircle className="h-3.5 w-3.5" />}
                                         {extractedData.isFraudulent ? 'TAMPER_DETECTED' : 'INTEGRITY_VERIFIED'}
                                     </div>
-                                    <div className="text-right group/score">
-                                        <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest block mb-1 group-hover/score:text-cyan-400 transition-colors">Conf_Score</span>
-                                        <div className="flex items-center gap-2 justify-end">
-                                            <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden hidden sm:block">
-                                                <div
-                                                    className="h-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"
-                                                    style={{ width: `${(extractedData.confidenceScore || 0.99) * 100}%` }}
-                                                />
-                                            </div>
-                                            <span className="text-cyan-400 font-mono text-xl font-black group-hover/score:scale-110 transition-transform block">
-                                                {typeof extractedData.confidenceScore === 'number' && !isNaN(extractedData.confidenceScore)
-                                                    ? (extractedData.confidenceScore * 100).toFixed(0)
-                                                    : "99"}%
-                                            </span>
+                                    <Button
+                                        onClick={() => setShowJson(!showJson)}
+                                        variant="outline"
+                                        className="h-9 px-4 rounded-full border-cyan-500/20 bg-cyan-500/5 text-[10px] font-black tracking-widest text-cyan-400 hover:bg-cyan-500/10 uppercase transition-all"
+                                    >
+                                        <Cpu className="h-3 w-3 mr-2" />
+                                        {showJson ? "Hide Core JSON" : "Extract JSON"}
+                                    </Button>
+                                </div>
+                                <div className="text-right group/score pt-6 border-t border-white/5 mt-6">
+                                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest block mb-1 group-hover/score:text-cyan-400 transition-colors">Conf_Score</span>
+                                    <div className="flex items-center gap-2 justify-end">
+                                        <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden hidden sm:block">
+                                            <div
+                                                className="h-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]"
+                                                style={{ width: `${(extractedData.confidenceScore || 0.99) * 100}%` }}
+                                            />
                                         </div>
+                                        <span className="text-cyan-400 font-sans text-xl font-bold group-hover/score:scale-110 transition-transform block">
+                                            {typeof extractedData.confidenceScore === 'number' && !isNaN(extractedData.confidenceScore)
+                                                ? (extractedData.confidenceScore * 100).toFixed(0)
+                                                : "99"}%
+                                        </span>
                                     </div>
                                 </div>
+
+                                {showJson && jsonContent && (
+                                    <div className="mt-8 animate-in slide-in-from-top-4 duration-500 relative z-[100] border-t border-cyan-500/20 pt-8">
+                                        <div className="flex items-center justify-between mb-4 px-2">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2 rounded-lg bg-cyan-500/10">
+                                                    <Cpu className="h-4 w-4 text-cyan-400" />
+                                                </div>
+                                                <span className="text-[11px] font-bold text-slate-300 tracking-[0.25em] uppercase">Core_Identity_Matrix</span>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-9 font-bold text-cyan-400/80 hover:text-white hover:bg-cyan-500/20 px-4 rounded-xl border border-cyan-500/10"
+                                                onClick={(e) => {
+                                                    e.preventDefault();
+                                                    const blob = new Blob([jsonContent], { type: 'application/json' });
+                                                    const url = URL.createObjectURL(blob);
+                                                    const a = document.createElement('a');
+                                                    a.href = url;
+                                                    a.download = `AcadLedger_Proof_${extractedData.recipientId}.json`;
+                                                    a.click();
+                                                }}
+                                            >
+                                                Export .JSON
+                                            </Button>
+                                        </div>
+                                        <div className="bg-[#020617] border border-cyan-500/20 rounded-[1.5rem] p-6 shadow-[0_0_30px_rgba(34,211,238,0.1)] overflow-hidden relative group/json">
+                                            <div className="absolute top-0 right-0 p-6 opacity-[0.05] pointer-events-none group-hover/json:opacity-10 transition-opacity">
+                                                <Cpu className="h-24 w-24 text-cyan-400" />
+                                            </div>
+                                            <pre className="text-[10px] font-sans font-medium text-cyan-300/90 leading-relaxed overflow-x-auto custom-scrollbar max-h-[350px] relative z-20">
+                                                {jsonContent}
+                                            </pre>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -346,15 +432,15 @@ function DemoWorkflow({ address }: { address: string }) {
                     {/* Hash Block */}
                     <div className={`p-8 rounded-[2.5rem] border transition-all duration-700 ${step === 'hashing' ? 'bg-purple-500/5 border-purple-500/30' : documentHash ? 'glassmorphism border-white/10' : 'opacity-20 grayscale pointer-events-none scale-95'}`}>
                         <div className="flex items-center gap-4 mb-8">
-                            <div className="h-10 w-10 glassmorphism rounded-xl flex items-center justify-center text-xs font-mono font-bold text-purple-400 border-purple-500/30">
+                            <div className="h-10 w-10 glassmorphism rounded-xl flex items-center justify-center text-xs font-bold text-purple-400 border-purple-500/30">
                                 S3
                             </div>
-                            <h3 className="text-xl font-bold font-mono uppercase tracking-widest text-white/90">Digest_Generation</h3>
+                            <h3 className="text-xl font-bold uppercase tracking-widest text-white/90">Digest_Generation</h3>
                         </div>
 
                         {documentHash && (
                             <div className="bg-black/60 rounded-[1.5rem] p-6 border border-white/5 group relative">
-                                <div className="absolute top-2 right-4 text-[8px] font-mono text-slate-600 group-hover:text-purple-400 transition-colors">ALGORITHM: KECCAK-256</div>
+                                <div className="absolute top-2 right-4 text-[8px] font-sans text-slate-600 group-hover:text-purple-400 transition-colors uppercase tracking-widest font-bold">ALGORITHM_KECCAK_256</div>
                                 <p className="text-green-500 font-mono text-[10px] sm:text-xs leading-relaxed break-all p-4 bg-green-500/5 rounded-xl border border-green-500/10 hover:border-green-500/40 transition-all duration-500 select-all">
                                     {documentHash}
                                 </p>
@@ -365,10 +451,10 @@ function DemoWorkflow({ address }: { address: string }) {
                     {/* Blockchain Block */}
                     <div className={`p-8 rounded-[2.5rem] border transition-all duration-1000 ${step === 'attesting' ? 'bg-cyber-gradient/10 border-white/30 animate-glow-pulse shadow-2xl shadow-purple-500/10' : txHash ? 'bg-green-500/[0.03] border-green-500/30' : 'opacity-20 grayscale pointer-events-none scale-95'}`}>
                         <div className="flex items-center gap-4 mb-8">
-                            <div className={`h-10 w-10 glassmorphism rounded-xl flex items-center justify-center text-xs font-mono font-bold border transition-all ${txHash ? 'text-green-400 border-green-500/30' : 'text-slate-600 border-white/5'}`}>
+                            <div className={`h-10 w-10 glassmorphism rounded-xl flex items-center justify-center text-xs font-bold border transition-all ${txHash ? 'text-green-400 border-green-500/30' : 'text-slate-600 border-white/5'}`}>
                                 S4
                             </div>
-                            <h3 className="text-xl font-bold font-mono uppercase tracking-widest text-white/90">L2_Attestation</h3>
+                            <h3 className="text-xl font-bold uppercase tracking-widest text-white/90">L2_Attestation</h3>
                         </div>
 
                         {txHash && (
@@ -379,20 +465,20 @@ function DemoWorkflow({ address }: { address: string }) {
                                     </div>
                                     <div>
                                         <p className="font-bold text-sm tracking-tight text-white">Anchored Successfully</p>
-                                        <p className="text-[10px] font-mono text-green-500/80">STATE: FINALIZED_ON_LAYER_2</p>
+                                        <p className="text-[10px] font-sans font-bold text-green-500/80">STATE: FINALIZED_ON_LAYER_2</p>
                                     </div>
                                 </div>
 
                                 <div className="bg-black/60 rounded-2xl p-6 border border-white/5">
-                                    <span className="text-[10px] text-slate-500 uppercase font-black tracking-widest block mb-2">TX_IDENTITY</span>
-                                    <p className="text-slate-400 font-mono text-[10px] break-all leading-normal opacity-80">{txHash}</p>
+                                    <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest block mb-2">TX_IDENTITY</span>
+                                    <p className="text-slate-400 font-sans font-bold text-[10px] break-all leading-normal opacity-80">{txHash}</p>
                                 </div>
 
                                 <a
                                     href={`https://cardona-zkevm.polygonscan.com/tx/${txHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center justify-center h-12 w-full rounded-xl bg-white/5 border border-white/10 text-white font-mono text-xs uppercase tracking-widest hover:bg-white/10 hover:border-purple-500/40 transition-all group"
+                                    className="flex items-center justify-center h-12 w-full rounded-xl bg-white/5 border border-white/10 text-white font-sans font-bold text-xs uppercase tracking-widest hover:bg-white/10 hover:border-purple-500/40 transition-all group"
                                 >
                                     <ExternalLink className="mr-2 h-4 w-4 group-hover:scale-110 transition-transform" />
                                     Explore_Block
@@ -413,7 +499,7 @@ function DemoWorkflow({ address }: { address: string }) {
                         {step === 'extracted' && !extractedData?.isFraudulent && (
                             <Button
                                 onClick={handleAttest}
-                                className="w-full h-20 rounded-[1.75rem] bg-cyber-gradient text-white font-black text-xl shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group"
+                                className="w-full h-20 rounded-[1.75rem] bg-cyber-gradient text-white font-bold text-xl shadow-2xl shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 group"
                             >
                                 <Cpu className="mr-3 h-7 w-7 transition-all group-hover:rotate-12" />
                                 Commit Attestation
@@ -441,27 +527,29 @@ function DemoWorkflow({ address }: { address: string }) {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 
-function DataField({ label, value, isMono = false, className = "" }: { label: string, value: string | undefined, isMono?: boolean, className?: string }) {
+function DataField({ label, value, isMono = false, isSpecial = false, className = "" }: { label: string, value: string | undefined, isMono?: boolean, isSpecial?: boolean, className?: string }) {
     return (
-        <div className={`space-y-2 group/field ${className}`}>
+        <div className={`space-y-1.5 group/field ${className}`}>
             <div className="flex items-center gap-2">
-                <span className="text-[9px] text-slate-500 uppercase tracking-[.3em] font-black block font-mono group-hover/field:text-cyan-400 transition-colors duration-300">{label}</span>
-                <div className="h-[1px] flex-1 bg-white/[0.03] group-hover/field:bg-cyan-500/20 transition-colors" />
+                <span className="text-[9px] text-slate-500 uppercase tracking-[.25em] font-bold block font-sans group-hover/field:text-cyan-400 transition-colors duration-300">{label}</span>
+                <div className="h-[1px] flex-1 bg-white/[0.02]" />
             </div>
             <div className={`
-                relative overflow-hidden px-5 py-4 rounded-2xl 
-                bg-gradient-to-br from-white/[0.04] to-transparent 
-                border border-white/5 text-white/90 
-                group-hover/field:border-cyan-500/30 group-hover/field:from-white/[0.08]
-                group-hover/field:translate-x-1 transition-all duration-500 shadow-lg
-                ${isMono ? 'font-mono text-sm font-bold text-cyan-400/90' : 'font-sans font-black text-xl tracking-tighter'}
+                relative overflow-hidden px-4 py-3.5 rounded-2xl 
+                transition-all duration-300 shadow-sm border
+                ${isSpecial
+                    ? 'bg-gradient-to-r from-cyan-500/[0.05] to-purple-500/[0.05] border-white/5 group-hover/field:border-cyan-500/40'
+                    : 'bg-white/[0.02] border-white/[0.04] group-hover/field:border-cyan-500/20 group-hover/field:bg-white/[0.04]'}
+                ${isMono ? 'font-mono text-xs font-semibold' : 'font-sans font-semibold text-[15px] tracking-tight'}
             `}>
                 <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/5 to-transparent opacity-0 group-hover/field:opacity-100 transition-opacity" />
-                <span className="relative z-10 uppercase">{value || 'NOT_DECODED'}</span>
+                <span className={`relative z-10 ${isSpecial ? 'bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-400 font-bold' : 'text-white/90'}`}>
+                    {value || 'NOT_DECODED'}
+                </span>
             </div>
         </div>
     );

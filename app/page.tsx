@@ -28,16 +28,23 @@ export default function Home() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-blue-600/5 blur-[160px] rounded-full" />
       </div>
 
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#020617]/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 bg-black/20 backdrop-blur-2xl transition-all duration-300">
+        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center gap-3 group cursor-pointer">
-            <div className="h-10 w-10 p-1.5 rounded-xl bg-white flex items-center justify-center overflow-hidden border border-white/10 group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-white/5">
-              <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
+            <div className="h-10 w-10 p-1 rounded-full bg-white/5 flex items-center justify-center overflow-hidden border border-white/10 group-hover:scale-110 transition-transform duration-300 shadow-xl shadow-cyan-500/5">
+              <img src="/New Project 100 [31F474F].png" alt="AcadLedger Logo" className="w-full h-full object-cover" />
             </div>
             <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
               AcadLedger
             </span>
           </div>
+
+          <nav className="hidden md:flex items-center gap-8 mr-8">
+            <Link href="/explorer" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-cyan-400 transition-colors">Explorer</Link>
+            <Link href="/verifier" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-cyan-400 transition-colors">Verify</Link>
+            <Link href="/dashboard" className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-cyan-400 transition-colors">Dashboard</Link>
+          </nav>
 
           <div className="flex items-center gap-4">
             <Button
@@ -78,14 +85,13 @@ export default function Home() {
               </span>
               Verified Academy Ledger
             </motion.div>
-            <h1 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 leading-[0.9] text-white">
-              Secure <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500 italic">Credentials</span>
-              <br /> for SIT.
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-8 leading-[1.1] text-white">
+              Global Integrity <br />
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">of Credentials.</span>
             </h1>
-            <p className="text-xl text-slate-400 leading-relaxed font-light mb-12 max-w-lg">
-              Empower Sethu Institute of Technology with a tamper-proof system for issuing and verifying official documents.
-              Modern tech meets institutional trust.
+            <p className="text-lg text-slate-400 leading-relaxed font-normal mb-12 max-w-lg">
+              Empowering institutions with a tamper-proof protocol for issuing and verifying academic documents.
+              Modern technology meets institutional trust.
             </p>
             <div className="flex flex-wrap gap-5">
               <Link href="/issuer">
@@ -122,15 +128,30 @@ export default function Home() {
               {/* Back Side */}
               <div className="absolute inset-0 backface-hidden rotate-y-180 h-full w-full">
                 <div className="glassmorphism p-10 rounded-[3.5rem] border-white/30 h-full flex flex-col justify-center items-center text-center shadow-2xl">
-                  <Award className="h-16 w-16 text-cyan-400 mb-6" />
-                  <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter italic">Protocol_Security</h3>
-                  <div className="space-y-4 text-slate-400 text-sm font-light">
-                    <p>Verified via Polygon Cardona zkEVM</p>
-                    <p>Encryption: Keccak-256</p>
-                    <p>Identity Provider: SIT_Authority</p>
+                  <Sparkles className="h-12 w-12 text-cyan-400 mb-6 animate-pulse" />
+                  <h3 className="text-xl font-bold text-white mb-6 uppercase tracking-widest font-sans">Evolution of Trust</h3>
+                  <div className="space-y-6 w-full px-6 text-left">
+                    {[
+                      { icon: <Shield className="h-4 w-4" />, text: "Phase 1: Zero-Knowledge Minting" },
+                      { icon: <Cpu className="h-4 w-4" />, text: "Phase 2: Neural Integrity Check" },
+                      { icon: <Layers className="h-4 w-4" />, text: "Phase 3: Polygon L2 Settlement" }
+                    ].map((step, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 + (i * 0.1) }}
+                        className="flex items-center gap-4 text-slate-300 text-xs font-medium"
+                      >
+                        <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center border border-white/10 shrink-0">
+                          {step.icon}
+                        </div>
+                        {step.text}
+                      </motion.div>
+                    ))}
                   </div>
-                  <div className="mt-8 px-6 py-2 rounded-full border border-cyan-500/30 text-cyan-400 text-[10px] font-mono tracking-widest uppercase">
-                    Status: Immutable_Proof_Confirmed
+                  <div className="mt-10 px-6 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[9px] font-sans font-bold tracking-[0.2em] uppercase">
+                    Platform Standard: Active
                   </div>
                 </div>
               </div>
@@ -150,8 +171,8 @@ export default function Home() {
               <div className="h-24 w-24 bg-purple-500/10 rounded-[2.5rem] flex items-center justify-center mb-10 group-hover:scale-110 group-hover:rotate-6 transition-all duration-700 border border-white/5 shadow-inner">
                 <Building2 className="h-12 w-12 text-purple-400" />
               </div>
-              <h2 className="text-3xl font-bold mb-6 text-white tracking-tight">Institutional Portal</h2>
-              <p className="text-slate-400 mb-10 leading-relaxed font-light px-4">
+              <h2 className="text-2xl font-bold mb-4 text-white tracking-tight">Institutional Portal</h2>
+              <p className="text-sm text-slate-400 mb-10 leading-relaxed font-normal px-4">
                 Execute document attestation, manage alumni records, and anchor cryptographic proofs to the secure L2 ledger.
               </p>
               <Button className="mt-auto w-full h-16 rounded-[2rem] bg-cyber-gradient hover:opacity-90 font-bold text-lg shadow-xl shadow-purple-500/20 transition-all">
@@ -168,9 +189,9 @@ export default function Home() {
               <div className="h-24 w-24 bg-cyan-500/10 rounded-[2.5rem] flex items-center justify-center mb-10 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-700 border border-white/5 shadow-inner">
                 <FileSearch className="h-12 w-12 text-cyan-400" />
               </div>
-              <h2 className="text-3xl font-bold mb-6 text-white tracking-tight">Public Verification</h2>
-              <p className="text-slate-400 mb-10 leading-relaxed font-light px-4">
-                Utilize neural visual audit to detect document tampering and instantly verify authenticity on the blockchain.
+              <h2 className="text-2xl font-bold mb-4 text-white tracking-tight">Public Verification</h2>
+              <p className="text-sm text-slate-400 mb-10 leading-relaxed font-normal px-4">
+                Utilize neural visual audit to detect document alterations and instantly verify authenticity on the ledger.
               </p>
               <Button variant="outline" className="mt-auto w-full h-16 rounded-[2rem] border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-400 font-bold text-lg transition-all backdrop-blur-sm">
                 Enter Scanner
@@ -185,8 +206,8 @@ export default function Home() {
             {...fadeIn}
             className="text-center mb-24"
           >
-            <h2 className="text-4xl md:text-6xl font-black tracking-tighter mb-6">Absolute Integrity.</h2>
-            <div className="h-1.5 w-24 bg-cyber-gradient mx-auto rounded-full" />
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight mb-6">Absolute Integrity.</h2>
+            <div className="h-1.5 w-20 bg-cyber-gradient mx-auto rounded-full" />
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-10">
@@ -225,9 +246,9 @@ export default function Home() {
               <div className="mb-12 p-6 rounded-3xl bg-red-500/10 border border-red-500/20 flex flex-col md:flex-row items-center justify-between gap-6 animate-pulse">
                 <div className="flex items-center gap-4">
                   <AlertCircle className="h-8 w-8 text-red-400" />
-                  <div className="text-left">
-                    <p className="text-white font-bold tracking-tight uppercase">Wallet_Disconnected</p>
-                    <p className="text-red-400/80 text-sm font-light">Check your connectivity of wallet to interact with the protocol.</p>
+                  <div className="text-left font-sans">
+                    <p className="text-white font-bold tracking-tight uppercase">Wallet Disconnected</p>
+                    <p className="text-red-400/80 text-sm font-medium">Connect your wallet to interact with the protocol.</p>
                   </div>
                 </div>
                 <Button onClick={() => open()} className="bg-red-500 hover:bg-red-600 text-white rounded-2xl px-8 h-12 font-bold transition-all shadow-lg shadow-red-500/20">
@@ -238,7 +259,7 @@ export default function Home() {
 
             <div className="grid lg:grid-cols-2 gap-20">
               <div>
-                <h2 className="text-4xl font-black text-white mb-8 tracking-tighter uppercase italic">Platform_Instruction</h2>
+                <h2 className="text-3xl font-bold text-white mb-8 tracking-tight uppercase font-sans">Protocol Instruction</h2>
                 <div className="space-y-10 text-left">
                   <GuideItem
                     num="A"
@@ -263,8 +284,8 @@ export default function Home() {
                     <Sparkles className="h-5 w-5 text-cyan-400" />
                     Why AcadLedger?
                   </h4>
-                  <p className="text-slate-400 leading-relaxed font-light mb-6">
-                    Designed specifically for SIT, AcadLedger bridges the gap between traditional paper credentials and the decentralized future. No more fake degrees, no more slow verification processes.
+                  <p className="text-slate-400 leading-relaxed font-normal mb-6">
+                    AcadLedger bridges the gap between traditional paper credentials and the decentralized future. No more fake degrees, no more slow verification processes.
                   </p>
                   <ul className="space-y-3">
                     {['Zero Gas Fees for Students', 'Instant Verification API', 'GDPR Compliant Hashing'].map((text, i) => (
@@ -295,8 +316,8 @@ export default function Home() {
             <p className="text-xs text-slate-600 font-bold uppercase tracking-[0.2em]">
               © 2024 AcadLedger Protocol
             </p>
-            <p className="text-[10px] text-slate-700 font-mono italic">
-              Empowering SIT and the Next Generation of Scholars.
+            <p className="text-[10px] text-slate-700 font-sans font-medium">
+              The Universal Standard for Academic Credentialing.
             </p>
           </div>
         </footer>
@@ -326,12 +347,12 @@ function FeatureCard({ icon, title, description, color }: { icon: React.ReactNod
 function WorkflowStep({ num, title, desc }: { num: string, title: string, desc: string }) {
   return (
     <div className="flex gap-10 items-start relative group">
-      <div className="h-24 w-24 rounded-[2rem] glassmorphism bg-white/5 flex items-center justify-center text-4xl font-black italic text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/20 group-hover:border-cyan-500/50 transition-all duration-700 shrink-0 border-white/10 z-10 shadow-2xl">
+      <div className="h-24 w-24 rounded-[2rem] glassmorphism bg-white/5 flex items-center justify-center text-4xl font-bold text-cyan-400 group-hover:scale-110 group-hover:bg-cyan-500/20 group-hover:border-cyan-500/50 transition-all duration-700 shrink-0 border-white/10 z-10 shadow-2xl">
         {num}
       </div>
       <div className="pt-4">
-        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight group-hover:text-cyan-400 transition-colors uppercase italic">{title}</h3>
-        <p className="text-slate-400 max-w-xl text-lg leading-relaxed font-light">{desc}</p>
+        <h3 className="text-2xl font-bold text-white mb-3 tracking-tight group-hover:text-cyan-400 transition-colors uppercase font-sans">{title}</h3>
+        <p className="text-slate-400 max-w-xl text-lg leading-relaxed font-normal">{desc}</p>
       </div>
     </div>
   );
@@ -339,50 +360,41 @@ function WorkflowStep({ num, title, desc }: { num: string, title: string, desc: 
 
 function CertificateTeaser() {
   return (
-    <div className="relative glassmorphism p-10 rounded-[3.5rem] border-white/30 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.8)] scale-[0.9] lg:scale-100 transition-all hover:scale-[1.02] duration-1000 overflow-hidden">
+    <div className="relative glassmorphism p-12 rounded-[3.5rem] border-white/30 shadow-[0_32px_120px_-20px_rgba(0,0,0,0.8)] scale-[0.9] lg:scale-100 transition-all hover:scale-[1.02] duration-1000 overflow-hidden flex flex-col items-center justify-center min-h-[480px]">
       <div className="absolute top-10 right-10">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ delay: 1, duration: 0.5 }}
-          className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500 text-white text-xs font-black uppercase tracking-widest shadow-[0_0_20px_rgba(59,130,246,0.5)] border border-blue-400"
+          className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-500 text-white text-[10px] font-bold uppercase tracking-widest shadow-[0_0_20px_rgba(59,130,246,0.3)] border border-blue-400"
         >
-          <CheckCircle className="h-4 w-4" />
+          <CheckCircle className="h-3.5 w-3.5" />
           Verified
         </motion.div>
       </div>
 
-      <div className="flex items-center gap-6 mb-12 pb-10 border-b border-white/5">
-        <div className="h-32 w-32 bg-white rounded-[2.5rem] flex items-center justify-center p-4 shadow-2xl overflow-hidden border border-white/20 transition-transform duration-700 hover:rotate-6">
-          <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
+      <div className="relative group w-full flex flex-col items-center">
+        <div className="absolute inset-0 bg-cyan-500/10 blur-[80px] rounded-full animate-pulse transition-all group-hover:bg-cyan-500/20" />
+        <div className="relative h-48 w-48 bg-[#020617] rounded-full flex items-center justify-center p-0.5 shadow-2xl overflow-hidden border border-white/10 transition-transform duration-1000 group-hover:scale-105 group-hover:rotate-1">
+          <img src="/New Project 100 [31F474F].png" alt="AcadLedger Logo" className="w-full h-full object-cover" />
         </div>
-        <div>
-          <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">SIT_SYSTEMS</h3>
-          <div className="text-xs font-mono text-slate-500 uppercase tracking-widest mt-3 flex items-center gap-2">
-            <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-            Institutional Node 0x92A
+
+        <div className="mt-10 text-center">
+          <h3 className="text-3xl font-bold text-white tracking-widest uppercase font-sans mb-3">AcadLedger</h3>
+          <div className="flex items-center justify-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-cyan-500 animate-pulse" />
+            <span className="text-[10px] font-sans text-cyan-400/60 uppercase tracking-[0.4em] font-bold">Global Trust Engine</span>
           </div>
         </div>
       </div>
 
-      <div className="space-y-8">
-        {[
-          { label: "Recipient", val: "Jane Smith" },
-          { label: "Document Category", val: "B.Tech Information Technology" },
-          { label: "Issue Date", val: "June 15, 2024" },
-          { label: "Registry ID", val: "SIT-EN-8829-X" }
-        ].map((item, idx) => (
-          <TeaserRow key={idx} label={item.label} value={item.val} delay={0.6 + (idx * 0.1)} />
-        ))}
-      </div>
-
-      <div className="mt-14 pt-8 border-t border-white/5 flex items-center justify-between">
-        <div className="flex items-center gap-3 text-green-400">
-          <ShieldCheck className="h-5 w-5 animate-pulse" />
-          <span className="text-xs font-bold uppercase tracking-[0.2em] font-mono">Ledger_Authenticated</span>
+      <div className="absolute bottom-10 left-10 right-10 pt-8 border-t border-white/5 flex items-center justify-between">
+        <div className="flex items-center gap-3 text-green-400/80">
+          <ShieldCheck className="h-4 w-4" />
+          <span className="text-[9px] font-bold uppercase tracking-[0.2em] font-sans">Ledger Authenticated</span>
         </div>
-        <div className="h-12 w-12 glassmorphism rounded-2xl flex items-center justify-center border-purple-500/20 group hover:border-purple-500/50 transition-colors">
-          <Cpu className="h-6 w-6 text-purple-400 animate-pulse" />
+        <div className="h-10 w-10 glassmorphism rounded-xl flex items-center justify-center border-purple-500/10">
+          <Cpu className="h-5 w-5 text-purple-400/60" />
         </div>
       </div>
     </div>
@@ -395,10 +407,10 @@ function TeaserRow({ label, value, delay }: { label: string, value: string, dela
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay, duration: 0.5 }}
-      className="flex justify-between items-center group/row py-1 border-b border-white/[0.02]"
+      className="flex justify-between items-center group/row py-1.5 border-b border-white/[0.02]"
     >
-      <span className="text-xs text-slate-500 uppercase font-bold tracking-widest group-hover/row:text-slate-400 transition-colors">{label}</span>
-      <span className={`text-base font-bold text-white group-hover/row:text-cyan-400 transition-colors uppercase tracking-tight ${label === 'Recipient' ? 'font-serif italic' : ''}`}>
+      <span className="text-[9px] text-slate-500 uppercase font-bold tracking-[0.2em] group-hover/row:text-slate-400 transition-colors font-sans">{label}</span>
+      <span className={`text-sm font-bold text-white group-hover/row:text-cyan-400 transition-colors uppercase tracking-tight font-sans`}>
         {value}
       </span>
     </motion.div>
@@ -408,7 +420,7 @@ function TeaserRow({ label, value, delay }: { label: string, value: string, dela
 function GuideItem({ num, title, desc }: { num: string, title: string, desc: string }) {
   return (
     <div className="flex gap-6 group">
-      <div className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 font-black italic shrink-0 group-hover:bg-cyan-400 group-hover:text-black transition-all">
+      <div className="h-12 w-12 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-cyan-400 font-bold shrink-0 group-hover:bg-cyan-400 group-hover:text-black transition-all">
         {num}
       </div>
       <div>
