@@ -3,12 +3,23 @@ import { ethers } from "ethers";
 // Interface for the private student data that will be stored off-chain (e.g., Private Database or Encrypted IPFS)
 export interface PrivateStudentData {
     recipientName: string;
-    recipientEmail: string;
     recipientId: string;
-    recipientWallet?: string;
     documentType: string;
-    documentDescription: string;
-    issuedAt: number;
+}
+
+/**
+ * Creates a standardized data object to ensure hash consistency.
+ */
+export function createCanonicalData(
+    name: string,
+    id: string,
+    type: string
+): PrivateStudentData {
+    return {
+        recipientName: name.trim(),
+        recipientId: id.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''),
+        documentType: type.trim().toUpperCase().replace(/[^A-Z0-9]/g, ''),
+    };
 }
 
 /**

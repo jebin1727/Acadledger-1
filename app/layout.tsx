@@ -1,7 +1,7 @@
 import type React from "react";
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Outfit, Fraunces } from "next/font/google";
 import { cookieToInitialState } from "wagmi";
 import { config, projectId, metadata as WMetadata } from "@/lib/config";
 import { headers } from "next/headers";
@@ -19,7 +19,8 @@ createWeb3Modal({
   enableAnalytics: true, // Optional - defaults to your Cloud configuration
 });
 
-const inter = Inter({ subsets: ["latin"] });
+const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
+const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces" });
 
 export const metadata: Metadata = {
   title: "AcadLedger - Document Issuance and Verification Platform",
@@ -38,11 +39,11 @@ export default async function RootLayout({
 
 
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="dark">
+      <body className={`${outfit.variable} ${fraunces.variable} font-sans`}>
         {" "}
         <WagmiProviderComp initialState={initialState}>
-            {children}
+          {children}
         </WagmiProviderComp>
       </body>
     </html>

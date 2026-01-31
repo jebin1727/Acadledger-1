@@ -2,7 +2,7 @@ import { defaultWagmiConfig } from "@web3modal/wagmi/react/config";
 import { cookieStorage, createStorage } from "wagmi";
 import { } from "wagmi/chains";
 
-export const projectId = "601f7b2bfff74bb3e8b910a176bbe82c";
+export const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
 if (!projectId) throw new Error("Project ID is not defined");
 

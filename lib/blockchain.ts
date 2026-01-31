@@ -1,9 +1,8 @@
 import { ethers } from "ethers";
-import { AttestationRegistryABI } from "./abi";
+import { abi } from "./contract";
 
-// The address of the deployed AttestationRegistry contract on Polygon zkEVM Cardona Testnet
-// You should update this with your actual deployed contract address
-const ATTESTATION_REGISTRY_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || "0x0000000000000000000000000000000000000000";
+// The address of the deployed AcadLedger contract on Polygon Amoy
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DASHBOARD_CONTRACT_ADDRESS || "0xA09916427843c35a233BF355bFAF1C735F9e75fa";
 
 export interface BlockchainStatus {
     isConnected: boolean;
@@ -38,9 +37,10 @@ export async function connectWallet(): Promise<BlockchainStatus> {
 
 /**
  * Attests a document hash on the blockchain (Issuer only).
- * @param hash The Keccak256 hash of the document data
+ * @param hash The Keccak256 hash or IPFS CID
+ * @param ipfsURI The full ipfs:// URI for metadata
  */
-export async function attestOnChain(hash: string): Promise<{ success: boolean; txHash?: string; error?: string }> {
+export async function attestOnChain(hash: string, ipfsURI: string = ""): Promise<{ success: boolean; txHash?: string; error?: string }> {
     if (typeof window === "undefined" || !(window as any).ethereum) {
         return { success: false, error: "Metamask not found" };
     }
@@ -49,9 +49,10 @@ export async function attestOnChain(hash: string): Promise<{ success: boolean; t
         const provider = new ethers.BrowserProvider((window as any).ethereum);
         const signer = await provider.getSigner();
 
-        const contract = new ethers.Contract(ATTESTATION_REGISTRY_ADDRESS, AttestationRegistryABI, signer);
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, signer);
 
-        const tx = await contract.attest(hash);
+        // AcadLedger uses issueDocument(string docHash, string ipfs_uri)
+        const tx = await contract.issueDocument(hash, ipfsURI);
         await tx.wait(); // Wait for confirmation
 
         return { success: true, txHash: tx.hash };
@@ -63,27 +64,22 @@ export async function attestOnChain(hash: string): Promise<{ success: boolean; t
 
 /**
  * Verifies if a document hash exists on the blockchain (Public view).
- * @param hash The Keccak256 hash of the document data
+ * @param hash The hash to verify
  */
 export async function verifyOnChain(hash: string): Promise<boolean> {
-    // For reading, we can use a public RPC or the user's wallet if connected.
-    // Ideally use a dedicated RPC for reliability if user has no wallet, 
-    // but for now we'll rely on window.ethereum or a default provider.
-
     let provider;
     if (typeof window !== "undefined" && (window as any).ethereum) {
         provider = new ethers.BrowserProvider((window as any).ethereum);
     } else {
-        // Fallback to a public RPC if needed, or fail if no provider
-        // provider = new ethers.JsonRpcProvider("RPC_URL");
-        console.warn("No wallet found for verification, returning false (demo mode)");
-        return false;
+        // Fallback to public RPC
+        provider = new ethers.JsonRpcProvider("https://rpc-amoy.polygon.technology/");
     }
 
     try {
-        const contract = new ethers.Contract(ATTESTATION_REGISTRY_ADDRESS, AttestationRegistryABI, provider);
-        const isValid = await contract.verify(hash);
-        return isValid;
+        const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
+        // AcadLedger uses verifyDocument(string docHash) -> (bool valid, address issuer, ...)
+        const result = await contract.verifyDocument(hash);
+        return result[0]; // valid
     } catch (error) {
         console.error("Verification error:", error);
         return false;

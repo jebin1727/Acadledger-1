@@ -26,6 +26,9 @@ import {
   MoreHorizontal,
   FileCheck,
   UserCircle2,
+  Loader2,
+  AlertCircle,
+  Sparkles,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -116,7 +119,7 @@ export default function Dashboard() {
         const signer = await provider.getSigner();
 
         const contract = new ethers.Contract(
-          "0xA09916427843c35a233BF355bFAF1C735F9e75fa",
+          process.env.NEXT_PUBLIC_DASHBOARD_CONTRACT_ADDRESS!,
           abi,
           signer
         );
@@ -131,7 +134,7 @@ export default function Dashboard() {
             ipfsURI: string
           ][]
         ] = await contract.getInstitutionWithDocuments(
-            address
+          address
         );
 
         const metadataResponse = await axios.get("/api/register", {
@@ -210,7 +213,7 @@ export default function Dashboard() {
 
       // // Connect to contract
       const contract = new ethers.Contract(
-        "0xA09916427843c35a233BF355bFAF1C735F9e75fa",
+        process.env.NEXT_PUBLIC_DASHBOARD_CONTRACT_ADDRESS!,
         abi, // Your contract ABI
         signer
       );
@@ -258,112 +261,109 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="hidden md:flex w-64 flex-col border-r bg-muted/40">
-        <div className="flex h-14 items-center border-b px-4">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <Shield className="h-5 w-5 text-primary" />
-            <span>AcadLedger</span>
+    <div className="flex min-h-screen bg-[#020617] text-slate-50">
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 right-0 w-[40%] h-[40%] bg-purple-600/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[40%] h-[40%] bg-cyan-600/5 blur-[120px] rounded-full" />
+      </div>
+
+      <aside className="hidden md:flex w-72 flex-col glassmorphism border-r border-white/5 relative z-20">
+        <div className="flex h-20 items-center justify-center border-b border-white/5 px-6">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="h-10 w-10 p-1.5 rounded-xl bg-white flex items-center justify-center overflow-hidden border border-white/10 group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-white/5">
+              <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
+            </div>
+            <span className="text-xl font-black tracking-tighter uppercase">AcadLedger</span>
           </Link>
         </div>
-        <nav className="flex-1 overflow-auto py-4">
-          <div className="px-4 mb-4">
-            <h2 className="mb-2 px-2 text-xs font-semibold tracking-tight">
-              Dashboard
+        <nav className="flex-1 overflow-auto py-8">
+          <div className="px-6 mb-8">
+            <h2 className="mb-4 px-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              Navigation
             </h2>
-            <div className="space-y-1">
-              <Button variant="ghost" className="w-full justify-start gap-2">
-                <FileText className="h-4 w-4" />
-                Documents
+            <div className="space-y-2">
+              <Button variant="ghost" className="w-full justify-start gap-3 h-12 rounded-xl bg-white/5 border border-white/5 text-purple-400">
+                <FileText className="h-5 w-5" />
+                <span className="font-bold">Documents</span>
               </Button>
             </div>
           </div>
         </nav>
-        <div className="mt-auto border-t p-4">
+        <div className="mt-auto border-t border-white/5 p-6 space-y-4">
+          <div className="glassmorphism p-4 rounded-2xl border-white/5">
+            <p className="text-[10px] font-mono text-slate-500 uppercase mb-2">Authenticated_As</p>
+            <p className="text-xs font-mono text-white/70 truncate">{address?.slice(0, 16)}...</p>
+          </div>
           <Button
             variant="ghost"
-            className="w-full justify-start gap-2"
+            className="w-full justify-start gap-3 h-12 rounded-xl hover:bg-red-500/10 hover:text-red-400 text-slate-400 transition-all font-bold"
             onClick={() => setIsLoggedIn(false)}
           >
-            <LogOut className="h-4 w-4" />
-            Logout
+            <LogOut className="h-5 w-5" />
+            Sign Out
           </Button>
         </div>
       </aside>
-      <div className="flex flex-col flex-1">
-        <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:px-6">
-          <div className="md:hidden">
-            <Link href="/" className="flex items-center gap-2 font-semibold">
-              <Shield className="h-5 w-5 text-primary" />
-              <span>AcadLedger</span>
-            </Link>
+
+      <div className="flex flex-col flex-1 relative z-10">
+        <header className="flex h-20 items-center gap-6 glassmorphism border-b border-white/5 px-8">
+          <div className="md:hidden h-8 w-8 bg-white rounded-lg flex items-center justify-center p-1">
+            <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
           </div>
           <div className="w-full flex-1">
-            <form>
-              <div className="relative">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search documents..."
-                  className="w-full bg-background pl-8 md:w-[300px] lg:w-[400px]"
-                />
-              </div>
-            </form>
+            <div className="relative max-w-md">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+              <Input
+                type="search"
+                placeholder="Lookup cryptographic hash..."
+                className="w-full bg-white/5 border-white/10 pl-11 h-12 rounded-2xl focus:ring-purple-500/50 focus:border-purple-500/50 transition-all"
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="h-8 gap-1">
-              <span className="sr-only md:not-sr-only md:inline">
-                {institutionDetails ? institutionDetails.name : "Loading..."}
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end">
+              <span className="text-xs font-black uppercase tracking-widest text-slate-500">INSTITUTION</span>
+              <span className="text-sm font-bold text-white">
+                {institutionDetails ? institutionDetails.name : "RESOLVING..."}
               </span>
-            </Button>
+            </div>
           </div>
         </header>
-        <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+
+        <main className="flex flex-1 flex-col gap-8 p-8 max-w-7xl mx-auto w-full">
           <div className="flex items-center justify-between">
-            <h1 className="text-lg font-semibold md:text-2xl">
-              Document Management
-            </h1>
+            <div className="space-y-1">
+              <h1 className="text-3xl font-black tracking-tight text-white uppercase italic">
+                Vault_Records
+              </h1>
+              <p className="text-slate-400 text-sm font-light">Managing immutable proofs of academic achievement.</p>
+            </div>
+
             <Dialog open={newDocumentOpened}>
               <DialogTrigger asChild>
                 <Button
                   onClick={() => setNewDocumentOpened(true)}
-                  className="gap-1"
+                  className="h-14 px-8 rounded-2xl bg-cyber-gradient text-white font-black text-lg shadow-xl shadow-purple-500/20 hover:scale-[1.03] active:scale-[0.98] transition-all gap-3"
                 >
-                  <Plus className="h-4 w-4" />
-                  New Document
+                  <Plus className="h-6 w-6" />
+                  Issue_Credential
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Issue New Document</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details to create and issue a new official
-                    document.
+              <DialogContent className="max-w-3xl glassmorphism border-white/10 text-white rounded-[3rem] p-10 shadow-2xl overflow-y-auto max-h-[90vh]">
+                <DialogHeader className="mb-8">
+                  <DialogTitle className="text-3xl font-black uppercase italic tracking-tighter">Forge_Archive</DialogTitle>
+                  <DialogDescription className="text-slate-400">
+                    Prepare new academic data for cryptographic anchoring to the protocol.
                   </DialogDescription>
                 </DialogHeader>
                 <NewDocumentForm
-                  onNewDocumentAdd={(newData: {
-                    recipient: {
-                      fullName: string;
-                      email: string;
-                      id: string;
-                      walletAddress: string;
-                    };
-                    document: {
-                      type: string;
-                      id: string;
-                      hash: string;
-                      description: string;
-                    };
-                    issuedAt: bigint;
-                    status: boolean;
-                  }) =>
+                  onNewDocumentAdd={(newData: any) =>
                     setInstitutionDetails((prev) =>
                       prev
                         ? {
-                            name: prev.name,
-                            documents: prev.documents.concat(newData),
-                          }
+                          name: prev.name,
+                          documents: prev.documents.concat(newData),
+                        }
                         : null
                     )
                   }
@@ -372,74 +372,74 @@ export default function Dashboard() {
               </DialogContent>
             </Dialog>
           </div>
-          <Tabs defaultValue="all" className="w-full">
-            <TabsContent value="all" className="border rounded-md mt-6">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document ID</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Recipient</TableHead>
-                    <TableHead>Issue Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {institutionDetails ? (
-                    institutionDetails.documents.map((doc) => (
-                      <TableRow key={doc.document.id}>
-                        <TableCell className="font-medium">
-                          {doc.document.hash}
-                        </TableCell>
-                        <TableCell>{doc.document.type}</TableCell>
-                        <TableCell>{doc.recipient.fullName}</TableCell>
-                        <TableCell>
-                          {new Date(
-                            Number(doc.issuedAt) * 1000
-                          ).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className={`h-2 w-2 rounded-full ${
-                                doc.status ? "bg-red-500" : "bg-green-500"
-                              }`}
-                            ></div>
-                            <span>{doc.status ? "Revoked" : "Issued"}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() => void onRevoke(doc.document.hash)}
-                                className="text-destructive"
-                              >
-                                Revoke
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center">
-                        Loading...
+
+          <div className="glassmorphism rounded-[2.5rem] border-white/5 overflow-hidden">
+            <Table>
+              <TableHeader className="bg-white/5">
+                <TableRow className="border-white/5 hover:bg-transparent h-16">
+                  <TableHead className="px-8 text-[10px] font-black uppercase tracking-widest text-slate-500">Hash_Identity</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Category</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Recipient</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">Timestamp</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase tracking-widest text-slate-500">State</TableHead>
+                  <TableHead className="text-right px-8 text-[10px] font-black uppercase tracking-widest text-slate-500">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {institutionDetails ? (
+                  institutionDetails.documents.map((doc) => (
+                    <TableRow key={doc.document.id} className="border-white/5 hover:bg-white/5 transition-colors h-20">
+                      <TableCell className="px-8 font-mono text-[10px] text-purple-400 truncate max-w-[200px]">
+                        {doc.document.hash}
+                      </TableCell>
+                      <TableCell>
+                        <span className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300">
+                          {doc.document.type}
+                        </span>
+                      </TableCell>
+                      <TableCell className="font-bold text-white">{doc.recipient.fullName}</TableCell>
+                      <TableCell className="text-slate-400 font-mono text-xs">
+                        {new Date(Number(doc.issuedAt) * 1000).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${doc.status ? "bg-red-500/10 text-red-500 border border-red-500/20" : "bg-green-500/10 text-green-500 border border-green-500/20"
+                          }`}>
+                          <div className={`h-1.5 w-1.5 rounded-full ${doc.status ? "bg-red-500 shadow-[0_0_8px_red]" : "bg-green-500 shadow-[0_0_8px_green]"}`} />
+                          {doc.status ? "Revoked" : "Live"}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right px-8">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="hover:bg-white/10 rounded-xl">
+                              <MoreHorizontal className="h-5 w-5 text-slate-400" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="glassmorphism border-white/10 text-white rounded-xl">
+                            <DropdownMenuItem
+                              onClick={() => void onRevoke(doc.document.hash)}
+                              className="text-red-400 focus:text-red-300 focus:bg-red-500/10 rounded-lg cursor-pointer font-bold"
+                            >
+                              Revoke Record
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TabsContent>
-          </Tabs>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-20">
+                      <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="h-10 w-10 text-purple-400 animate-spin" />
+                        <span className="text-xs font-mono tracking-widest text-slate-500">FETCHING_LEDGER_RECORDS...</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </main>
       </div>
     </div>
@@ -448,34 +448,49 @@ export default function Dashboard() {
 
 function LoginForm() {
   const { open } = useWeb3Modal();
-
   const { address } = useAccount();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-2">
-            <Shield className="h-10 w-10 text-primary" />
+    <div className="flex min-h-screen items-center justify-center bg-[#020617] p-8 relative overflow-hidden">
+      <div className="absolute top-[10%] right-[10%] w-[40%] h-[40%] bg-purple-600/10 blur-[150px] rounded-full" />
+      <div className="absolute bottom-[10%] left-[10%] w-[40%] h-[40%] bg-cyan-600/10 blur-[150px] rounded-full" />
+
+      <Card className="w-full max-w-lg glassmorphism border-white/10 rounded-[3rem] p-12 shadow-2xl relative z-10 transition-all hover:border-white/20">
+        <CardHeader className="space-y-6 text-center">
+          <div className="flex justify-center">
+            <div className="h-20 w-20 p-3 rounded-3xl bg-white shadow-2xl shadow-white/10 border border-white/10">
+              <img src="/sethu-logo.png" alt="SIT Logo" className="w-full h-auto object-contain" />
+            </div>
           </div>
-          <CardTitle className="text-center text-2xl">
-            Institution Login
-          </CardTitle>
-          <CardDescription className="text-center">
-            Connect yo god damn wallet
-          </CardDescription>
+          <div className="space-y-2">
+            <CardTitle className="text-4xl font-black tracking-tight uppercase italic text-white leading-none">
+              Vault_Access
+            </CardTitle>
+            <CardDescription className="text-slate-400 text-lg font-light">
+              Secure institutional gateway. Connect your authority wallet to continue.
+            </CardDescription>
+          </div>
         </CardHeader>
 
-        <CardFooter>
-          <Button className="w-full" onClick={() => open()} variant="outline">
+        <CardContent className="pt-8">
+          <Button
+            className="w-full h-16 rounded-2xl bg-cyber-gradient text-white font-black text-xl shadow-2xl shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all"
+            onClick={() => open()}
+          >
             {address ? (
-              <div className="flex gap-2 items-center">
-                <UserCircle2 className="h-8 w-8 mr-2" />
-                {address.slice(0, 6)}...{address.slice(-4)}
+              <div className="flex gap-3 items-center">
+                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                <span>{address.slice(0, 8)}...{address.slice(-6)}</span>
               </div>
             ) : (
-              "Connect Wallet"
+              "Connect Authority Wallet"
             )}
           </Button>
+        </CardContent>
+        <CardFooter className="justify-center border-t border-white/5 mt-8 pt-6">
+          <p className="text-[10px] font-mono text-slate-500 uppercase tracking-[0.3em]">
+            Protocol_Security_Active • AISX_v4
+          </p>
         </CardFooter>
       </Card>
     </div>
@@ -523,7 +538,7 @@ function NewDocumentForm({
   const { address, connector } = useAccount();
   const { data: walletClient } = useWalletClient();
   const [loading, setLoading] = useState(false);
-  const newDocumentId = useMemo(() => crypto.randomUUID(),[])
+  const newDocumentId = useMemo(() => crypto.randomUUID(), [])
 
   const onSubmit: SubmitHandler<DocumentForm> = async (data) => {
     try {
@@ -576,7 +591,7 @@ function NewDocumentForm({
 
       // // Connect to contract
       const contract = new ethers.Contract(
-        "0xA09916427843c35a233BF355bFAF1C735F9e75fa",
+        process.env.NEXT_PUBLIC_DASHBOARD_CONTRACT_ADDRESS!,
         abi, // Your contract ABI
         signer
       );
@@ -626,33 +641,32 @@ function NewDocumentForm({
   return (
     <form
       id="new-document-form"
-      className="space-y-6 py-4"
+      className="space-y-10 py-6"
       onSubmit={handleSubmit(onSubmit)}
     >
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium mb-4">Recipient's Details</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="recipient-name">Full Name</Label>
+      <div className="space-y-6">
+        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-purple-400 flex items-center gap-2">
+          <div className="h-1.5 w-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_purple]" />
+          Recipient_Identity
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Full Name" error={errors.recipientName}>
             <Input
               id="recipient-name"
-              placeholder="Recipient's full name"
+              placeholder="e.g. Satoshi Nakamoto"
+              className="bg-white/5 border-white/10 h-12 rounded-xl focus:ring-purple-500/50"
               {...register("recipientName", {
                 required: "Full name is required",
               })}
             />
-            {errors.recipientName && (
-              <span className="text-sm text-red-500">
-                {errors.recipientName.message}
-              </span>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="recipient-email">Email</Label>
+          </FormField>
+
+          <FormField label="Email" error={errors.recipientEmail}>
             <Input
               id="recipient-email"
               type="email"
-              placeholder="recipient@example.com"
+              placeholder="satoshi@bitcoin.org"
+              className="bg-white/5 border-white/10 h-12 rounded-xl focus:ring-purple-500/50"
               {...register("recipientEmail", {
                 required: "Email is required",
                 pattern: {
@@ -661,121 +675,124 @@ function NewDocumentForm({
                 },
               })}
             />
-            {errors.recipientEmail && (
-              <span className="text-sm text-red-500">
-                {errors.recipientEmail.message}
-              </span>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="recipient-id">ID/Registration Number</Label>
+          </FormField>
+
+          <FormField label="ID / Registration" error={errors.recipientId}>
             <Input
               id="recipient-id"
-              placeholder="Student ID or registration number"
+              placeholder="UID-9921-X"
+              className="bg-white/5 border-white/10 h-12 rounded-xl focus:ring-purple-500/50"
               {...register("recipientId", { required: "ID is required" })}
             />
-            {errors.recipientId && (
-              <span className="text-sm text-red-500">
-                {errors.recipientId.message}
-              </span>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="recipient-wallet">Wallet Address</Label>
+          </FormField>
+
+          <FormField label="Wallet Address" error={errors.recipientWallet}>
             <Input
               id="recipient-wallet"
-              placeholder="Blockchain wallet address (optional)"
+              placeholder="0x... (Optional)"
+              className="bg-white/5 border-white/10 h-12 rounded-xl focus:ring-purple-500/50 font-mono text-xs"
               {...register("recipientWallet")}
             />
-            <p className="text-xs text-muted-foreground">
-              For blockchain verification and storage
-            </p>
-          </div>
+          </FormField>
         </div>
       </div>
 
-      <div className="border-t pt-6">
-        <h3 className="text-lg font-medium mb-4">Document Details</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="document-type">Type of Document</Label>
+      <div className="space-y-6 pt-6 border-t border-white/5">
+        <h3 className="text-sm font-black uppercase tracking-[0.2em] text-cyan-400 flex items-center gap-2">
+          <div className="h-1.5 w-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_cyan]" />
+          Credential_Data
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FormField label="Credential Type" error={errors.documentType}>
             <Input
               id="document-type"
               placeholder="Degree Certificate"
+              className="bg-white/5 border-white/10 h-12 rounded-xl focus:ring-cyan-500/50"
               {...register("documentType", {
                 required: "Document type is required",
               })}
             />
-            {errors.documentType && (
-              <span className="text-sm text-red-500">
-                {errors.documentType.message}
-              </span>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="document-id">Document ID</Label>
+          </FormField>
+
+          <FormField label="Archive UID (Auto)">
             <Input
               id="document-id"
               defaultValue={newDocumentId}
-              value={newDocumentId}
               readOnly
+              className="bg-white/10 border-white/20 h-12 rounded-xl font-mono text-xs text-slate-400 cursor-not-allowed"
             />
-            <p className="text-xs text-muted-foreground">
-              Auto-generated unique identifier
-            </p>
-          </div>
+          </FormField>
         </div>
-        <div className="space-y-2 mt-4">
-          <Label htmlFor="document-file">Document File</Label>
-          <Input
-            id="document-file"
-            type="file"
-            accept=".pdf,.doc,.docx"
-            {...register("documentFile", {
-              required: "Document file is required",
-            })}
-          />
+
+        <div className="space-y-3">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Source File</Label>
+          <div className="relative group">
+            <Input
+              id="document-file"
+              type="file"
+              accept=".pdf,.doc,.docx"
+              className="bg-white/5 border-white/10 h-14 rounded-2xl file:bg-white/10 file:border-0 file:text-white file:font-bold file:px-4 file:h-full file:mr-4 hover:border-cyan-500/40 transition-all cursor-pointer"
+              {...register("documentFile", {
+                required: "Document file is required",
+              })}
+            />
+          </div>
           {errors.documentFile && (
-            <span className="text-sm text-red-500">
+            <span className="text-xs text-red-500 font-bold tracking-tight">
               {errors.documentFile.message}
             </span>
           )}
-          <p className="text-sm text-muted-foreground">
-            Upload the document file (PDF, DOC, DOCX)
-          </p>
         </div>
-        <div className="space-y-2 mt-4">
-          <Label htmlFor="document-description">Description</Label>
+
+        <FormField label="Description / Metadata" error={errors.documentDescription}>
           <Textarea
             id="document-description"
-            placeholder="Brief description of the document"
-            className="min-h-[80px]"
+            placeholder="Official transcript for Semester 8..."
+            className="bg-white/5 border-white/10 rounded-2xl min-h-[100px] focus:ring-cyan-500/50"
             {...register("documentDescription", {
               required: "Description is required",
             })}
           />
-          {errors.documentDescription && (
-            <span className="text-sm text-red-500">
-              {errors.documentDescription.message}
-            </span>
-          )}
-        </div>
+        </FormField>
       </div>
-      <DialogFooter className="mt-6">
-        <Button onClick={onClose} variant="outline" type="button">
-          Cancel
+
+      <DialogFooter className="mt-10 sm:justify-between gap-4">
+        <Button onClick={onClose} variant="ghost" type="button" className="h-14 px-8 rounded-2xl text-slate-400 hover:text-white hover:bg-white/5">
+          Abort Forge
         </Button>
-        <Button type="submit" form="new-document-form">
+        <Button
+          type="submit"
+          form="new-document-form"
+          disabled={loading}
+          className="h-14 px-10 rounded-2xl bg-cyber-gradient text-white font-black text-lg shadow-xl shadow-purple-500/20 hover:scale-[1.03] active:scale-[0.98] transition-all"
+        >
           {loading ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Creating...
+            <div className="flex items-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="animate-pulse">ANCHORING...</span>
             </div>
           ) : (
-            "Create Document"
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5" />
+              Commit_To_Ledger
+            </div>
           )}
         </Button>
       </DialogFooter>
     </form>
+  );
+}
+
+function FormField({ label, children, error }: { label: string, children: React.ReactNode, error?: any }) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">{label}</Label>
+      {children}
+      {error && (
+        <span className="text-xs text-red-500 font-bold tracking-tight px-1">
+          {error.message}
+        </span>
+      )}
+    </div>
   );
 }
