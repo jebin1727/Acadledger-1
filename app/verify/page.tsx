@@ -335,7 +335,7 @@ export default function VerifyPage() {
             <span className="text-xs font-bold tracking-tight text-white uppercase italic">AcadLedger Autonomous Verification Node</span>
           </div>
           <p className="text-[8px] font-mono text-slate-500 uppercase tracking-widest">
-            NODE_STATE: SYNCHRONIZED • AMOY_TESTNET • ZKEVM_PROOFS
+            NODE_STATE: SYNCHRONIZED • AMOY_TESTNET • AMOY_PROOFS
           </p>
         </div>
       </footer>

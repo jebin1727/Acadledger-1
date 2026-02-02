@@ -475,7 +475,7 @@ function DemoWorkflow({ address }: { address: string }) {
                                 </div>
 
                                 <a
-                                    href={`https://cardona-zkevm.polygonscan.com/tx/${txHash}`}
+                                    href={`https://amoy.polygonscan.com/tx/${txHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center h-12 w-full rounded-xl bg-white/5 border border-white/10 text-white font-sans font-bold text-xs uppercase tracking-widest hover:bg-white/10 hover:border-purple-500/40 transition-all group"

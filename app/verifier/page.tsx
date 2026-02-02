@@ -315,7 +315,7 @@ export default function VerifierPage() {
             <footer className="py-12 border-t border-white/5 opacity-40">
                 <div className="container flex justify-between items-center whitespace-nowrap overflow-hidden">
                     <span className="text-xs font-bold uppercase tracking-widest">AcadLedger Protocol v2.5.0</span>
-                    <span className="text-xs font-mono text-slate-500">Polygon Cardona zkEVM • Secure Audit Baseline</span>
+                    <span className="text-xs font-mono text-slate-500">Polygon Amoy Testnet • Secure Audit Baseline</span>
                 </div>
             </footer>
         </div>

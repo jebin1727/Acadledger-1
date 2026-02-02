@@ -68,7 +68,7 @@ export default function ExplorerPage() {
                 console.error("Ledger Sync Error:", err);
                 setError(network === "LOCAL"
                     ? "Local Node Unreachable. Ensure Docker eth-node1 is running at port 8549."
-                    : "Public RPC Connection Failed. Check your internet or try again later.");
+                    : "Public Amoy RPC Connection Failed. Check your internet or try again later.");
                 setDocuments([]);
             } finally {
                 setLoading(false);
@@ -111,6 +111,7 @@ export default function ExplorerPage() {
                             >
                                 Public Amoy
                             </button>
+
                             <button
                                 onClick={() => setNetwork("LOCAL")}
                                 className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${network === "LOCAL" ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/20' : 'text-slate-500 hover:text-slate-300'}`}
@@ -223,7 +224,7 @@ export default function ExplorerPage() {
                                         </TableCell>
                                         <TableCell className="text-right pr-8">
                                             <a
-                                                href={network === "PUBLIC" ? `https://cardona-zkevm.polygonscan.com/address/${CONTRACT_ADDRESS}` : "#"}
+                                                href={network === "PUBLIC" ? `https://amoy.polygonscan.com/address/${CONTRACT_ADDRESS}` : "#"}
                                                 target="_blank"
                                                 className="inline-flex items-center px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all focus:outline-none"
                                             >
